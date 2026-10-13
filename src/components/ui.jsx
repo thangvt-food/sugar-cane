@@ -33,7 +33,12 @@ export function SectionCard({ id, title, hint, children, accent }) {
     <section className="card" id={id}>
       <div className="card-head">
         <h3>{title}</h3>
-        {hint && <p className="hint">{hint}</p>}
+        {hint && (
+          <details className="hint-details">
+            <summary aria-label="Xem hướng dẫn">ⓘ Hướng dẫn</summary>
+            <p className="hint">{hint}</p>
+          </details>
+        )}
       </div>
       <div className="card-body">{children}</div>
       {accent && <div className="card-accent">{accent}</div>}

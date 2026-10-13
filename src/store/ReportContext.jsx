@@ -16,6 +16,8 @@ export const defaultReport = () => ({
   },
   exp2: {
     caneKg: "",
+    caneMulti: false,
+    caneW: ["", "", ""],
     rows: ["Juice (gr)", "Bagasse (gr)", "Juice (%)", "Juice (norm)", "°Bx", "pH", "Colour", "Flavour", "Taste", "Clarity", "State"].map((p) => ({ param: p, r1: "", r2: "", r3: "" })),
     comment22: "",
     compare23: "",
@@ -28,7 +30,6 @@ export const defaultReport = () => ({
     comment32: "",
   },
   exp4: {
-    initialGrams: "",
     rows: [0, 15, 30, 45, 60, 90].map((t) => ({ t, g1bx: "", g1w: "", g2bx: "", g2w: "", g3bx: "", g3w: "" })),
     eq1: "",
     eq2: "",
