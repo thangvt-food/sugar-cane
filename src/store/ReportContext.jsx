@@ -9,7 +9,7 @@ const LS_KEY = "sugarcane-lab-report-v1";
 export const defaultReport = () => ({
   meta: { group: "", students: "", updatedAt: "" },
   exp1: {
-    table: EXP1_CONC.map((conc) => ({ conc, g1: "", g2: "", g3: "" })),
+    table: EXP1_CONC.map((conc) => ({ conc, water: String(100 - conc), g1: "", g2: "", g3: "" })),
     equations: "",
     comment13: "",
     comment15: "",

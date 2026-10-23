@@ -22,7 +22,7 @@ Dùng **HashRouter** nên mở trực tiếp file tĩnh / host bất kỳ đều
 
 - Auth email + Google; chưa đăng nhập vẫn nhập được (lưu máy, đăng nhập sẽ đồng bộ cloud).
 - **6 chương riêng** (`/exp1`…`/exp6`), chép đầy đủ mô tả gốc từ phiếu để làm bài không cần mở PDF.
-- Exp 1: bảng 9 nồng độ (đường/nước tự tính), hồi quy tuyến tính + R² tự tính, chart nồng độ–°Bx.
+- Exp 1: bảng 9 nồng độ (đường tự tính; nước nhập tay, mặc định 100 − đường), hồi quy tuyến tính + R² tự tính, chart nồng độ–°Bx.
 - Exp 2: 2 bảng repeat (mean/SD tự tính), ô khối lượng mía, 2 mục so sánh với bảng 1.1.
 - Exp 3: bảng Control/5%/10%/15% vôi, nhận xét dùng số liệu nhóm khác.
 - Exp 4: bảng thời gian động (thêm/xóa dòng), hồi quy time–°Bx và time–weight, **2 biểu đồ**.

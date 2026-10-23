@@ -25,7 +25,7 @@ export default function Exp1({ mode }) {
 
       <SectionCard
         title="1.1 — Lượng đường / nước và nồng độ dung dịch (°Bx) (100 g dung dịch)"
-        hint="Đường lý thuyết = nồng độ % (g/100 g); Nước = 100 − đường. Cột Group 1/2/3: nhập °Bx đo thực tế bằng khúc xạ kế."
+        hint="Đường lý thuyết = nồng độ % (g/100 g). Nước mặc định = 100 − đường, sửa được theo lượng cân thực tế. Cột Group 1/2/3: nhập °Bx đo thực tế bằng khúc xạ kế."
       >
         {!mobile ? (
           <div className="table-wrap">
@@ -34,7 +34,7 @@ export default function Exp1({ mode }) {
                 <tr>
                   <th>Nồng độ (%)</th>
                   <th>Đường (g) <AutoTag>auto</AutoTag></th>
-                  <th>Nước (g) <AutoTag>auto</AutoTag></th>
+                  <th>Nước (g)</th>
                   <th>Group 1: °Bx đo</th>
                   <th>Group 2: °Bx đo</th>
                   <th>Group 3: °Bx đo</th>
@@ -45,7 +45,7 @@ export default function Exp1({ mode }) {
                   <tr key={r.conc}>
                     <td><b>{r.conc}</b></td>
                     <td className="auto">{fmt(r.conc, 1)}</td>
-                    <td className="auto">{fmt(100 - r.conc, 1)}</td>
+                    <td><NumInput value={r.water ?? String(100 - r.conc)} ariaLabel={`water conc ${r.conc}`} onChange={(v) => setCell(i, "water", v)} /></td>
                     {(["g1", "g2", "g3"]).map((k) => (
                       <td key={k}>
                         <NumInput value={r[k]} ariaLabel={`${k} conc ${r.conc}`} onChange={(v) => setCell(i, k, v)} />
@@ -62,7 +62,11 @@ export default function Exp1({ mode }) {
               <div className="m-card" key={r.conc}>
                 <div className="m-card-head">
                   <b>{r.conc}%</b>
-                  <span className="hint">đường {fmt(r.conc, 1)} g · nước {fmt(100 - r.conc, 1)} g</span>
+                  <span className="hint">đường {fmt(r.conc, 1)} g</span>
+                </div>
+                <div className="inline-field">
+                  <span>Nước (g):</span>
+                  <NumInput value={r.water ?? String(100 - r.conc)} ariaLabel={`water conc ${r.conc}`} onChange={(v) => setCell(i, "water", v)} />
                 </div>
                 <div className="m-grid3">
                   {[["g1", "Gr 1 °Bx"], ["g2", "Gr 2 °Bx"], ["g3", "Gr 3 °Bx"]].map(([k, label]) => (
