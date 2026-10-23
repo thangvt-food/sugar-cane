@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local report exports and temporary Excel test files
+/.tmp-loader.mjs
+/.tmp-test-xlsx.mjs
+/bao-cao-thuc-hanh-duong-mia.xlsx
+/so-thuc-hanh-duong-mia(3).json
