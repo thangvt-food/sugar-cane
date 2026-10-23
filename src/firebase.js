@@ -4,7 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FB_API_KEY || "AIzaSyBpasZ72EgIovTCVHokMpTYiXWdQolB1qc",
   authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN || "ant05-efa02.firebaseapp.com",
   databaseURL:

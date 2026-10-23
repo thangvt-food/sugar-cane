@@ -4,10 +4,11 @@ import { useState } from "react";
 import { EXPERIMENTS } from "../lib/experimentsMeta";
 import { useReport } from "../store/ReportContext";
 import { useAuth } from "../auth/AuthContext";
-import { SaveBadge, useIO } from "./DesktopLayout";
+import { useIO } from "./DesktopLayout";
+import { SyncStatus } from "../components/SyncStatus";
 
 export default function MobileLayout({ children, progress }) {
-  const { report, update, saveState } = useReport();
+  const { report, update } = useReport();
   const { user, logout } = useAuth();
   const io = useIO();
   const [more, setMore] = useState(false);
@@ -16,7 +17,7 @@ export default function MobileLayout({ children, progress }) {
     <div className="mob">
       <header className="mob-top">
         <div className="mob-brand"><span className="brand-icon">◈</span><b>Sổ đường mía</b></div>
-        <SaveBadge state={saveState} />
+        <SyncStatus />
         <button className="btn ghost sm" onClick={() => setMore((v) => !v)} aria-label="menu">☰</button>
       </header>
 

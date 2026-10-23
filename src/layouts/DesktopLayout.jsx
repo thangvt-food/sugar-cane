@@ -4,17 +4,7 @@ import { useRef } from "react";
 import { EXPERIMENTS } from "../lib/experimentsMeta";
 import { useReport } from "../store/ReportContext";
 import { useAuth } from "../auth/AuthContext";
-
-export function SaveBadge({ state }) {
-  const map = {
-    saved: ["● Đã lưu", "ok"],
-    saving: ["● Đang lưu…", "busy"],
-    error: ["● Lỗi lưu cloud (vẫn giữ local)", "err"],
-    offline: ["● Ngoại tuyến (lưu máy)", "err"],
-  };
-  const [label, cls] = map[state] || map.saved;
-  return <span className={`save-badge ${cls}`}>{label}</span>;
-}
+import { SyncStatus } from "../components/SyncStatus";
 
 export function useIO() {
   const { exportJSON, importJSON, resetAll } = useReport();
@@ -46,7 +36,7 @@ export function useIO() {
 }
 
 export default function DesktopLayout({ children, progress }) {
-  const { report, update, saveState } = useReport();
+  const { report, update } = useReport();
   const { user, logout } = useAuth();
   const io = useIO();
 
@@ -70,7 +60,7 @@ export default function DesktopLayout({ children, progress }) {
         </nav>
         <div className="side-foot">
           <div className="progress"><i style={{ width: `${progress}%` }} /><span>{progress}% hoàn thành</span></div>
-          <SaveBadge state={saveState} />
+          <SyncStatus />
           <div className="io-row">
             <button className="btn secondary sm" onClick={io.download}>Xuất JSON</button>
             <button className="btn secondary sm" onClick={() => io.fileRef.current?.click()}>Nhập</button>

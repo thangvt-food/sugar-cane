@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, firebaseConfig } from "../firebase";
 import { useAuth } from "../auth/AuthContext";
 import { EXP1_CONC } from "../lib/experimentsMeta";
+import { logSyncError } from "../lib/cloudDebug";
 
 const LS_KEY = "sugarcane-lab-report-v1";
 
@@ -65,13 +66,52 @@ export function ReportProvider({ children }) {
     return defaultReport();
   });
   const [saveState, setSaveState] = useState("saved"); // saved | saving | error | offline
+  const [syncError, setSyncError] = useState(null);
   const [loadedUid, setLoadedUid] = useState(null);
   const timer = useRef(null);
+
+  const recordSyncError = useCallback((operation, err) => {
+    const info = logSyncError(operation, err, {
+      projectId: firebaseConfig.projectId,
+      uid: user?.uid || null,
+      email: user?.email || null,
+      online: typeof navigator === "undefined" ? true : navigator.onLine,
+    });
+    setSyncError(info);
+    return info;
+  }, [user]);
+
+  const saveCloud = useCallback(async (data) => {
+    if (!user) return;
+    setSaveState("saving");
+    try {
+      await setDoc(
+        doc(db, "reports", user.uid),
+        { data, email: user.email, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+      setSaveState("saved");
+      setSyncError(null);
+      console.debug("[cloud-sync] save ok", { uid: user.uid, bytes: JSON.stringify(data).length });
+    } catch (err) {
+      recordSyncError("save", err);
+      setSaveState(navigator.onLine ? "error" : "offline");
+    }
+  }, [user, recordSyncError]);
+
+  const retrySync = useCallback(() => {
+    if (syncError?.operation === "load") {
+      window.location.reload();
+      return;
+    }
+    saveCloud(report);
+  }, [syncError, saveCloud, report]);
 
   // Tải báo cáo của user từ Firestore khi đăng nhập.
   useEffect(() => {
     if (!user) {
       setLoadedUid(null);
+      setSyncError(null);
       return;
     }
     let cancelled = false;
@@ -81,20 +121,29 @@ export function ReportProvider({ children }) {
         if (!cancelled && snap.exists()) {
           setReport({ ...defaultReport(), ...snap.data().data });
         }
-        if (!cancelled) setLoadedUid(user.uid);
-      } catch {
-        if (!cancelled) setSaveState("offline");
+        if (!cancelled) {
+          setLoadedUid(user.uid);
+          setSyncError((prev) => (prev?.operation === "load" ? null : prev));
+          console.debug("[cloud-sync] load ok", { uid: user.uid, exists: snap.exists() });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          recordSyncError("load", err);
+          setSaveState(navigator.onLine ? "error" : "offline");
+        }
       }
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, recordSyncError]);
 
   // Autosave: localStorage luôn, Firestore khi đã đăng nhập (debounce 800ms).
   useEffect(() => {
     setSaveState("saving");
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(report));
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.warn("[cloud-sync] localStorage write failed", err);
+    }
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       if (!user) {
@@ -108,12 +157,32 @@ export function ReportProvider({ children }) {
           { merge: true }
         );
         setSaveState("saved");
-      } catch {
-        setSaveState("error");
+        setSyncError(null);
+        console.debug("[cloud-sync] save ok", { uid: user.uid, bytes: JSON.stringify(report).length });
+      } catch (err) {
+        recordSyncError("save", err);
+        setSaveState(navigator.onLine ? "error" : "offline");
       }
     }, 800);
     return () => clearTimeout(timer.current);
-  }, [report, user]);
+  }, [report, user, recordSyncError]);
+
+  useEffect(() => {
+    const onOffline = () => {
+      console.warn("[cloud-sync] browser offline — chỉ còn lưu localStorage");
+      setSaveState("offline");
+    };
+    const onOnline = () => {
+      console.info("[cloud-sync] browser online");
+      if (syncError) retrySync();
+    };
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
+    return () => {
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
+    };
+  }, [syncError, retrySync]);
 
   const update = useCallback((path, value) => {
     setReport((prev) => setPath(prev, path, value));
@@ -143,7 +212,7 @@ export function ReportProvider({ children }) {
   }, [report]);
 
   return (
-    <ReportCtx.Provider value={{ report, update, saveState, progress, loadedUid, resetAll, importJSON, exportJSON }}>
+    <ReportCtx.Provider value={{ report, update, saveState, syncError, retrySync, progress, loadedUid, resetAll, importJSON, exportJSON }}>
       {children}
     </ReportCtx.Provider>
   );
