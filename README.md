@@ -15,7 +15,7 @@ Dùng **HashRouter** nên mở trực tiếp file tĩnh / host bất kỳ đều
 ## Firebase (quan trọng)
 
 1. Vào [Firebase console](https://console.firebase.google.com/) → project `ant05-efa02` → **Authentication → Sign-in method**: bật **Email/Password** và **Google**.
-2. **Firestore Database → Rules**: dán nội dung `firestore.rules` rồi Publish (mỗi user chỉ đọc/ghi `/reports/{uid}` của mình).
+2. **Firestore Database → Rules**: deploy bằng `firebase deploy --only firestore:rules` (mỗi user chỉ đọc/ghi `/reports/{uid}` của mình).
 3. Config mặc định đã nhúng trong `src/firebase.js`; khi deploy nên tạo `.env` theo `.env.example`.
 
 ## Tính năng
@@ -28,7 +28,8 @@ Dùng **HashRouter** nên mở trực tiếp file tĩnh / host bất kỳ đều
 - Exp 4: bảng thời gian động (thêm/xóa dòng), hồi quy time–°Bx và time–weight, **2 biểu đồ**.
 - Exp 5/6: ghi chép kết tinh, tên/mô tả/sơ đồ công đoạn/ưu-nhược/yếu tố chất lượng.
 - **2 giao diện riêng**: `DesktopLayout` (sidebar) và `MobileLayout` (topbar + chip + bottom tab, bảng chuyển thành thẻ) — chọn theo màn hình + touch, không chỉ bẻ CSS.
-- Autosave (Firestore debounce + localStorage), xuất/nhập JSON, nút **In PDF** (có CSS print).
+- Autosave (Firestore debounce + localStorage), xuất **Excel `.xlsx` 6 sheet** (định dạng bảng biểu, ô tự tính, phương trình hồi quy), xuất/nhập JSON, nút **In PDF** (có CSS print).
+- Debug lỗi sync cloud: log `[cloud-sync]` + panel chi tiết mã lỗi/UID/Project/trạng thái mạng.
 
 ## Cấu trúc
 
@@ -38,8 +39,10 @@ src/
   auth/AuthContext.jsx         login/register/google/logout
   store/ReportContext.jsx       state + autosave Firestore
   lib/stats.js                mean/SD/hồi quy
+  lib/reportXlsx.js           xuất Excel 6 sheet toàn bộ báo cáo
+  lib/cloudDebug.js           map lỗi sync + log chi tiết
   lib/experimentsMeta.js      mô tả gốc 6 thí nghiệm
-  components/ui.jsx charts.jsx
+  components/ui.jsx charts.jsx SyncStatus.jsx
   layouts/DesktopLayout.jsx MobileLayout.jsx
   pages/Exp1..Exp6.jsx AuthPage.jsx
   hooks/useDevice.js

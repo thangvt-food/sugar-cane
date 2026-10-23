@@ -33,6 +33,9 @@ export default function MobileLayout({ children, progress }) {
           </label>
           <div className="progress"><i style={{ width: `${progress}%` }} /><span>{progress}%</span></div>
           <div className="io-row wrap">
+            <button className="btn secondary sm" onClick={io.downloadXLSX} disabled={io.exporting} title="Excel 6 sheet, có định dạng">
+              {io.exporting ? "Đang xuất…" : "Xuất Excel"}
+            </button>
             <button className="btn secondary sm" onClick={io.download}>Xuất JSON</button>
             <button className="btn secondary sm" onClick={() => io.fileRef.current?.click()}>Nhập</button>
             <button className="btn secondary sm" onClick={() => window.print()}>In PDF</button>

@@ -1,14 +1,16 @@
 // Giao diện PC: sidebar trái + nội dung rộng. Cây DOM hoàn toàn riêng với MobileLayout.
 import { NavLink } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { EXPERIMENTS } from "../lib/experimentsMeta";
 import { useReport } from "../store/ReportContext";
 import { useAuth } from "../auth/AuthContext";
 import { SyncStatus } from "../components/SyncStatus";
+import { buildReportXlsx } from "../lib/reportXlsx";
 
 export function useIO() {
-  const { exportJSON, importJSON, resetAll } = useReport();
+  const { report, exportJSON, importJSON, resetAll } = useReport();
   const fileRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
   const download = () => {
     const blob = new Blob([exportJSON()], { type: "application/json" });
     const a = document.createElement("a");
@@ -16,6 +18,26 @@ export function useIO() {
     a.download = "so-thuc-hanh-duong-mia.json";
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+  const downloadXLSX = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const blob = await buildReportXlsx(report);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "so-thuc-hanh-duong-mia.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error("[xlsx-export] failed", err);
+      alert(`Không xuất được Excel: ${err?.message || err}`);
+    } finally {
+      setExporting(false);
+    }
   };
   const onFile = (e) => {
     const f = e.target.files?.[0];
@@ -32,7 +54,7 @@ export function useIO() {
     rd.readAsText(f);
     e.target.value = "";
   };
-  return { download, onFile, fileRef, resetAll };
+  return { download, downloadXLSX, exporting, onFile, fileRef, resetAll };
 }
 
 export default function DesktopLayout({ children, progress }) {
@@ -62,6 +84,9 @@ export default function DesktopLayout({ children, progress }) {
           <div className="progress"><i style={{ width: `${progress}%` }} /><span>{progress}% hoàn thành</span></div>
           <SyncStatus />
           <div className="io-row">
+            <button className="btn secondary sm" onClick={io.downloadXLSX} disabled={io.exporting} title="Excel 6 sheet, có định dạng">
+              {io.exporting ? "Đang xuất…" : "Xuất Excel"}
+            </button>
             <button className="btn secondary sm" onClick={io.download}>Xuất JSON</button>
             <button className="btn secondary sm" onClick={() => io.fileRef.current?.click()}>Nhập</button>
             <button className="btn secondary sm" onClick={() => window.print()}>In PDF</button>
