@@ -65,7 +65,7 @@ export default function DesktopLayout({ children, progress }) {
   return (
     <div className="desk">
       <aside className="desk-side">
-        <div className="brand">
+        <div className="desk-brand">
           <span className="brand-icon">◈</span>
           <div>
             <b>Sổ thực hành</b>
@@ -73,28 +73,36 @@ export default function DesktopLayout({ children, progress }) {
           </div>
         </div>
         <nav className="side-nav">
+          <span className="side-section-label">Nội dung thực hành</span>
           {EXPERIMENTS.map((e) => (
             <NavLink key={e.id} to={e.path} className={({ isActive }) => `side-link${isActive ? " active" : ""}`}>
-              <span className="side-no">{e.no}</span>
-              <span>{e.short}</span>
+              <span className="side-no" aria-hidden="true">{String(e.no).padStart(2, "0")}</span>
+              <span className="side-link-copy">
+                <span>{e.short}</span>
+                <small>Bài thực hành {e.no}</small>
+              </span>
+              <span className="side-link-arrow" aria-hidden="true">›</span>
             </NavLink>
           ))}
         </nav>
         <div className="side-foot">
+          <div className="side-section-label">Tiến độ</div>
           <div className="progress"><i style={{ width: `${progress}%` }} /><span>{progress}% hoàn thành</span></div>
           <SyncStatus />
-          <div className="io-row">
+          <div className="side-section-label side-data-label">Quản lý dữ liệu</div>
+          <div className="io-row side-io-grid">
             <button className="btn secondary sm" onClick={io.downloadXLSX} disabled={io.exporting} title="Excel 6 sheet, có định dạng">
               {io.exporting ? "Đang xuất…" : "Xuất Excel"}
             </button>
             <button className="btn secondary sm" onClick={io.download}>Xuất JSON</button>
-            <button className="btn secondary sm" onClick={() => io.fileRef.current?.click()}>Nhập</button>
+            <button className="btn secondary sm" onClick={() => io.fileRef.current?.click()}>Nhập JSON</button>
             <button className="btn secondary sm" onClick={() => window.print()}>In PDF</button>
           </div>
           <input ref={io.fileRef} type="file" accept="application/json" hidden onChange={io.onFile} />
-          <button className="btn danger sm" onClick={io.resetAll}>Xóa trắng</button>
-          <div className="user-box">
-            <small>{user?.email}</small>
+          <button className="btn danger sm side-reset" onClick={io.resetAll}>Xóa trắng số liệu</button>
+          <div className="side-account">
+            <span className="side-account-avatar" aria-hidden="true">{user?.email?.[0]?.toUpperCase() || "U"}</span>
+            <small title={user?.email}>{user?.email}</small>
             <button className="btn ghost sm" onClick={logout}>Đăng xuất</button>
           </div>
         </div>
