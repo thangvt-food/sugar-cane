@@ -10,7 +10,7 @@ npm run dev      # mở http://localhost:5173
 npm run build    # build production -> dist/
 ```
 
-Dùng **HashRouter** nên mở trực tiếp file tĩnh / host bất kỳ đều được.
+Dùng **HashRouter** và đường dẫn asset tương đối nên chạy được ở cả GitHub Pages (`https://thangvt-food.github.io/sugar-cane/`) lẫn domain riêng (`https://sugar.yangio.id.vn/`). File `public/CNAME` giữ cấu hình custom domain khi deploy.
 Trang hướng dẫn thực hành 6 bài có thể xem không cần đăng nhập tại `/#/guide`.
 
 ## Firebase (quan trọng)
