@@ -1,201 +1,169 @@
 {
-  "mon_hoc": "Thực hành Công nghệ Sản xuất Đường mía",
-  "noi_dung_video": "Hướng dẫn thí nghiệm thực hành sản xuất đường mía từ nguyên liệu đến thành phẩm",
-  "so_luong_bai": 6,
+  "mon_thuc_hanh": "Thực hành chế biến Đường mía và Ứng dụng bánh kẹo",
   "danh_sach_bai_thi_nghiem": [
     {
       "bai_so": 1,
-      "ten_bai": "Đánh giá chất lượng nguyên liệu mía và xác định chữ đường (CCS)",
-      "mo_ta_thi_nghiem": "Mía sau khi thu hoạch và vận chuyển về phòng thí nghiệm được phân loại, làm sạch bụi bẩn và rễ lá khô bám trên thân. Sinh viên tiến hành đo đạc kích thước, cân khối lượng nguyên liệu và tiến hành lấy mẫu kiểm tra độ chín bằng cách trích dịch ở các vị trí ngọn, thân và gốc cây mía. Mẫu nước mía ép ban đầu được lọc qua vải lọc mịn để loại bỏ vụn bã cơ học, sau đó đem xác định độ khô hòa tan bằng khúc xạ kế (độ Brix) và làm trong bằng chì acetate để đo góc quay cực trên phân cực kế (độ Pol). Dựa trên các giá trị đo được, tiến hành tính độ tinh khiết biểu kiến và chữ đường thương phẩm để kết luận khả năng thu hồi đường của lô mía.",
-      "thong_so_thuc_nghiem": [
-        "Khối lượng mẫu mía nạp ban đầu: m_mia (kg)",
-        "Độ Brix nước mía nguyên liệu: Bx (%)",
-        "Độ Pol nước mía nguyên liệu: Pol (%)",
-        "Tỷ lệ hàm lượng xơ trong mía: F (%)"
+      "ten_bai": "Khảo sát và hiệu chuẩn nồng độ dung dịch đường (Đo Brix)",
+      "mo_ta_tien_hanh": "Sinh viên tiến hành pha các dung dịch đường chuẩn ở các dải nồng độ khác nhau hoặc sử dụng mẫu đường có sẵn để xây dựng đường tương quan giữa nồng độ phần trăm và độ Brix. Sử dụng khúc xạ kế cầm tay (loại 0–35 độ Brix cho dung dịch loãng hoặc loại thang kép 0–50 và 50–90 độ Brix có gờ xoay chuyển thang đo cho mẫu đặc). Trước khi đo, vệ sinh sạch lăng kính bằng nước cất và thấm khô bằng giấy mềm, nhỏ một giọt mẫu vừa đủ lên bề mặt rồi đậy nắp khít không để bọt khí. Quan sát đường phân cách sáng tối qua thị kính để đọc giá trị Brix, lưu ý không tự ý vặn trục đo làm lệch trục thang đo chuẩn của thiết bị.",
+      "cac_chi_tieu_do": [
+        "Độ Brix (°Bx)",
+        "Nồng độ đường chuẩn pha chế (%)"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Độ tinh khiết biểu kiến",
-          "ky_hieu": "AP (%)",
-          "cong_thuc": "AP = (Pol / Bx) * 100",
-          "giai_thich": "Tỷ lệ phần trăm giữa lượng saccharose biểu kiến (Pol) và tổng chất khô hòa tan (Brix)."
-        },
-        {
-          "ten_chi_tieu": "Hệ số chín của cây mía",
-          "ky_hieu": "K_chin (%)",
-          "cong_thuc": "K_chin = (Bx_ngon / Bx_goc) * 100",
-          "giai_thich": "Đánh giá mức độ tích tụ đường từ gốc lên ngọn (mía chín tối ưu khi K_chin đạt từ 85% đến 95%)."
-        },
-        {
-          "ten_chi_tieu": "Chữ đường thương mại (Commercial Cane Sugar)",
-          "ky_hieu": "CCS (%)",
-          "cong_thuc": "CCS = 1.5 * Pol * [1 - (F + 5) / 100] - 0.5 * Bx * [1 - (F + 3) / 100]",
-          "giai_thich": "Lượng đường thương phẩm có thể thu hồi từ 100 kg cây mía nguyên liệu dựa trên hàm lượng Pol, Brix và xơ mía (F)."
+          "ten_cong_thuc": "Phương trình tương quan nồng độ và độ Brix",
+          "bieu_thuc": "Brix = f(C)",
+          "y_nghia": "Thiết lập đồ thị chuẩn để quy đổi và kiểm tra sai số khi đo các mẫu dung dịch thực tế."
         }
       ]
     },
     {
       "bai_so": 2,
-      "ten_bai": "Thực hành ép mía và đánh giá hiệu suất ép",
-      "mo_ta_thi_nghiem": "Cây mía đã được chuẩn bị sẽ được đưa qua máy xé hoặc chặt thành từng đoạn ngắn nhằm phá vỡ cấu trúc mô tế bào thực vật, giải phóng triệt để túi dịch bào chứa saccharose. Nguyên liệu đã xé tơi được đưa lần lượt qua hệ thống trục ép cơ học với áp lực nén điều chỉnh phù hợp; trong phương pháp ép thẩm thấu (ép ướt), nước ấm ở nhiệt độ 50 - 60 độ C được phun tưới đều lên bề mặt lớp bã sau mỗi lần ép để hòa tan lượng đường còn lưu lại. Thu hồi toàn bộ thể tích nước mía hỗn hợp vào bình chứa và thu gom lượng bã mía khô sau dàn ép, tiến hành cân chính xác khối lượng từng phần và lấy mẫu phân tích Pol dư trong bã mía để đánh giá mức độ kiệt đường.",
-      "thong_so_thuc_nghiem": [
-        "Khối lượng mía đem ép: m_mia (kg)",
-        "Khối lượng nước mía hỗn hợp thu được: m_nm (kg)",
-        "Khối lượng bã mía sau ép: m_ba (kg)",
-        "Lượng nước thẩm thấu phun bổ sung: m_nuoc_tt (kg)",
-        "Độ Pol của mía nguyên liệu: Pol_mia (%)",
-        "Độ Pol của bã mía: Pol_ba (%)",
-        "Độ Pol nước mía hỗn hợp: Pol_nm (%)"
+      "ten_bai": "Ép mía tươi và trích ly thẩm thấu bã mía (Ép 1 và Ép 2)",
+      "mo_ta_tien_hanh": "Mỗi tổ chuẩn bị 3 mẫu mía, mỗi mẫu khoảng 1000g (ghi nhận khối lượng thực tế, không chặt vụn để tránh sai số dập nát). Mía được rửa sơ bề mặt ngoài để sạch bụi bẩn, dùng khăn lau khô ráo để nước không ngấm vào bên trong rồi đưa vào máy ép lấy nước mía lần 1, thu nhận dung dịch nước mía và bã mía 1. Tiếp tục lấy bã mía 1 cân khối lượng, bổ sung nước sạch theo tỷ lệ 1:1 so với khối lượng bã mía (rưới đều lượng nước tương ứng lên bã), để yên 30 phút cho quá trình thẩm thấu trích ly đường dư diễn ra rồi đưa vào máy ép lần 2 thu nước mía ép 2 và bã ép 2. Nước mía ép 1 được phân tích 11 chỉ tiêu (khối lượng nước mía, khối lượng bã, % thu hồi, tỷ lệ nước mía chuẩn hóa, độ Brix, pH trong khoảng 5.5–5.8, màu sắc, mùi, vị, độ đục, độ đồng nhất); nước mía ép 2 chỉ cân đo khối lượng, tính hiệu suất thu hồi, đo Brix và pH.",
+      "cac_chi_tieu_do": [
+        "Khối lượng mía tươi ban đầu (m_mia, g)",
+        "Khối lượng dung dịch nước mía ép 1 (m_nm1, g)",
+        "Khối lượng bã mía 1 (m_ba1, g)",
+        "Khối lượng nước mía ép 2 (m_nm2, g)",
+        "Khối lượng bã mía sau ép 2 (m_ba2, g)",
+        "Độ Brix nước mía ép 1 và ép 2 (°Bx)",
+        "pH nước mía (chuẩn tươi 5.5 - 5.8)"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Tỷ lệ trích ly nước mía",
-          "ky_hieu": "Y_nm (%)",
-          "cong_thuc": "Y_nm = (m_nm / m_mia) * 100",
-          "giai_thich": "Tỷ lệ phần trăm khối lượng dịch nước mía thu được so với tổng khối lượng cây mía ban đầu."
+          "ten_cong_thuc": "Hiệu suất (tỷ lệ) thu hồi nước mía ép lần 1",
+          "bieu_thuc": "H_thuhoi_1 (%) = (m_nm1 / m_mia) * 100",
+          "y_nghia": "Đánh giá tỷ lệ lượng dung dịch nước mía trích ly được so với khối lượng mía cây ban đầu."
         },
         {
-          "ten_chi_tieu": "Hiệu suất ép trích ly đường (Extraction Efficiency)",
-          "ky_hieu": "H_ep (%)",
-          "cong_thuc": "H_ep = [(m_nm * Pol_nm) / (m_mia * Pol_mia)] * 100",
-          "giai_thich": "Tỷ số giữa tổng lượng saccharose thu hồi được trong nước mía hỗn hợp so với tổng lượng saccharose có trong cây mía ban đầu."
+          "ten_cong_thuc": "Hệ số hiệu chỉnh độ Brix nguyên liệu",
+          "bieu_thuc": "K_hieuchinh = Brix_thucte / Brix_tieuchuan",
+          "y_nghia": "Brix_tieuchuan quy ước của nhà máy/phòng thí nghiệm là 15 °Bx. Dùng để chuẩn hóa chất lượng độ ngọt của giống mía nhập liệu."
         },
         {
-          "ten_chi_tieu": "Hiệu suất ép tính theo tổn thất bã mía",
-          "ky_hieu": "H_ep_ba (%)",
-          "cong_thuc": "H_ep_ba = [1 - (m_ba * Pol_ba) / (m_mia * Pol_mia)] * 100",
-          "giai_thich": "Hiệu suất trích ly đường xác định dựa trên tỷ lệ saccharose bị tổn thất theo bã mía ra ngoài."
+          "ten_cong_thuc": "Tỷ lệ nước mía chuẩn hóa",
+          "bieu_thuc": "Ty_le_chuanhoa (%) = H_thuhoi_1 * K_hieuchinh = H_thuhoi_1 * (Brix_thucte / 15)",
+          "y_nghia": "Đánh giá hiệu suất ép thực tế quy đổi về điều kiện nguyên liệu chuẩn độ ngọt 15 °Bx."
+        },
+        {
+          "ten_cong_thuc": "Lượng nước bổ sung cho quá trình ép thẩm thấu lần 2",
+          "bieu_thuc": "m_nuoc_bo_sung = m_ba1",
+          "y_nghia": "Tỷ lệ phối trộn nước sạch : bã mía 1 là 1:1 theo khối lượng (g) trước khi ngâm thẩm thấu 30 phút."
+        },
+        {
+          "ten_cong_thuc": "Hiệu suất thu hồi dịch ép thẩm thấu lần 2",
+          "bieu_thuc": "H_thuhoi_2 (%) = (m_nm2 / (m_ba1 + m_nuoc_bo_sung)) * 100",
+          "y_nghia": "Đánh giá lượng dịch trích ly thu được sau khi thẩm thấu bã mía."
         }
       ]
     },
     {
       "bai_so": 3,
-      "ten_bai": "Làm sạch nước mía bằng phương pháp vôi hóa và gia nhiệt",
-      "mo_ta_thi_nghiem": "Nước mía hỗn hợp sau khi ép có tính axit yếu (pH khoảng 5.0 - 5.5) và chứa nhiều protein keo, hợp chất phenolic, pectin và axit hữu cơ làm đục dung dịch. Quá trình làm sạch được thực hiện bằng cách gia nhiệt sơ bộ nước mía lên 55 - 60 độ C, tiếp tục châm từ từ huyền phù sữa vôi Ca(OH)2 nồng độ 10 - 12 độ Be nhằm nâng giá trị pH lên vùng trung hòa (pH = 7.0 - 7.2) để tạo phức canxi phosphat và keo tụ protein. Hỗn hợp tiếp tục được gia nhiệt nhanh đến sôi (100 - 105 độ C) để hỗ trợ quá trình kết tủa hoàn toàn các muối không tan, chuyển sang ống lắng có bổ sung chất trợ lắng (flocculant), gạn lấy lớp nước chè trong và lọc lấy phần bã bùn đáy.",
-      "thong_so_thuc_nghiem": [
-        "Thể tích và khối lượng nước mía hỗn hợp: V_hh, m_hh",
-        "Độ Brix và Pol nước mía hỗn hợp: Bx_hh, Pol_hh",
-        "Thể tích nước chè trong thu được: V_trong, m_trong",
-        "Độ Brix và Pol của nước chè trong: Bx_trong, Pol_trong",
-        "Độ tinh khiết trước làm sạch: AP_hh (%)",
-        "Độ tinh khiết sau làm sạch: AP_trong (%)"
+      "ten_bai": "Làm sạch nước mía bằng nước vôi trong Ca(OH)2 20%",
+      "mo_ta_tien_hanh": "Gộp toàn bộ lượng nước mía thu được từ các lần ép của bài 2 lại để cân tổng khối lượng dung dịch nước mía thô ban đầu. Tùy theo nhóm thí nghiệm, bổ sung dung dịch nước vôi trong Ca(OH)2 nồng độ 20% theo tỷ lệ khối lượng quy định (Nhóm 1: 10%, Nhóm 2: 15%, Nhóm 3: 18% so với tổng khối lượng nước mía). Sau khi cho vôi vào, khuấy đều hỗn hợp và để yên trong 45–60 phút nhằm tạo điều kiện cho phản ứng trung hòa axit, kết tủa tạp chất và lắng cặn diễn ra hoàn toàn. Tiến hành lọc hỗn hợp qua tấm vải lọc (cần cân khối lượng vải lọc khô trước khi lọc); sau khi dung dịch chảy qua hết, thu dung dịch nước mía trong sau lọc và đem cân lại tấm vải chứa cặn bùn ẩm để xác định lượng bùn tách được, đồng thời kiểm tra lại độ Brix và pH (pH chuyển dịch về vùng trung tính).",
+      "cac_chi_tieu_do": [
+        "Tổng khối lượng nước mía thô gộp lại (m_nm_tong, g)",
+        "Khối lượng dung dịch nước vôi trong 20% cần thêm (m_voi, g)",
+        "Khối lượng tấm vải lọc khô (m_vai_kho, g)",
+        "Khối lượng tấm vải lọc dính bùn cặn sau lọc (m_vai_bun, g)",
+        "Khối lượng dung dịch nước mía trong sau lọc (m_dich_sau_loc, g)",
+        "Độ Brix và pH dịch trước và sau làm sạch"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Hiệu quả nâng cao độ tinh khiết (Hiệu quả làm sạch)",
-          "ky_hieu": "Delta_AP (%)",
-          "cong_thuc": "Delta_AP = AP_trong - AP_hh",
-          "giai_thich": "Mức độ gia tăng độ tinh khiết biểu kiến của nước mía sau khi loại trừ tạp chất không đường."
+          "ten_cong_thuc": "Khối lượng nước vôi trong 20% cần bổ sung",
+          "bieu_thuc": "m_voi = m_nm_tong * (%_voi_quy_dinh / 100)",
+          "y_nghia": "Tính toán lượng nước vôi 20% cần cân (với tỷ lệ tương ứng 10%, 15% hoặc 18% theo từng nhóm)."
         },
         {
-          "ten_chi_tieu": "Hiệu suất loại bỏ chất không đường",
-          "ky_hieu": "H_loai_tap (%)",
-          "cong_thuc": "H_loai_tap = [1 - (Bx_trong - Pol_trong) / (Bx_hh - Pol_hh)] * 100",
-          "giai_thich": "Tỷ lệ phần trăm các chất không đường đã được kết tủa và tách ra khỏi nước mía theo bã bùn."
+          "ten_cong_thuc": "Khối lượng cặn bùn tách ra sau lọc",
+          "bieu_thuc": "m_bun = m_vai_bun - m_vai_kho",
+          "y_nghia": "Lượng tạp chất, cặn bã keo và muối kết tủa giữ lại trên bề mặt vải lọc."
         },
         {
-          "ten_chi_tieu": "Hiệu suất thu hồi saccharose ở công đoạn làm sạch",
-          "ky_hieu": "H_ls (%)",
-          "cong_thuc": "H_ls = [(m_trong * Pol_trong) / (m_hh * Pol_hh)] * 100",
-          "giai_thich": "Tỷ lệ saccharose giữ lại được trong nước mía trong sau khi trừ đi tổn thất saccharose trong bùn lắng."
+          "ten_cong_thuc": "Hiệu suất (tỷ lệ) thu hồi bùn cặn",
+          "bieu_thuc": "H_bun (%) = (m_bun / (m_nm_tong + m_voi)) * 100",
+          "y_nghia": "Tỷ lệ khối lượng cặn bẩn loại bỏ được trên tổng khối lượng hỗn hợp phản ứng ban đầu."
+        },
+        {
+          "ten_cong_thuc": "Hiệu suất thu hồi dịch nước mía trong sau làm sạch",
+          "bieu_thuc": "H_dich_trong (%) = (m_dich_sau_loc / m_nm_tong) * 100",
+          "y_nghia": "Đánh giá mức độ hao hụt và lượng dịch sạch thu được để chuẩn bị đưa vào cô đặc."
         }
       ]
     },
     {
       "bai_so": 4,
-      "ten_bai": "Cô đặc nước mía thành mật chè (Siro)",
-      "mo_ta_thi_nghiem": "Nước chè trong sau quá trình lọc làm sạch có nồng độ chất khô hòa tan thấp (chỉ khoảng 13 - 15 độ Brix), cần được bốc hơi một lượng lớn nước để nâng nồng độ lên 60 - 65 độ Brix nhằm chuẩn bị điều kiện quá bão hòa cho việc kết tinh. Dung dịch chè trong được nạp vào nồi cô đặc chân không hoặc nồi đun có cánh khuấy kiểm soát nhiệt độ, duy trì gia nhiệt đều đặn và kiểm soát áp suất để giảm thiểu hiện tượng caramel hóa đường và biến đổi màu dịch. Trong quá trình cô đặc, tiến hành lấy mẫu định kỳ tại các mốc thời gian để đo độ Brix, kiểm tra độ pH và nhiệt độ sôi của dung dịch, ngừng cấp nhiệt khi mật chè đạt dải Brix quy định.",
-      "thong_so_thuc_nghiem": [
-        "Khối lượng nước mía chè trong nạp vào nồi: m_cd_vao (kg)",
-        "Độ Brix của nước mía chè trong nạp vào: Bx_vao (%)",
-        "Khối lượng mật chè (siro) thu được: m_cd_ra (kg)",
-        "Độ Brix của mật chè thu được: Bx_ra (%)",
-        "Lượng nước bốc hơi thực tế: W_tt (kg)"
+      "ten_bai": "Nấu đường - Quá trình cô đặc dung dịch nước mía",
+      "mo_ta_tien_hanh": "Cân xác định trước khối lượng của nồi nấu rỗng sạch (để tiện cân nhanh trên bếp mà không cần rót dịch ra ngoài gây giảm nhiệt độ sôi và thất thoát khối lượng). Cho toàn bộ dung dịch nước mía trong sau lọc vào nồi, đặt lên bếp gia nhiệt và ghi nhận thời điểm bắt đầu tính thời gian cô đặc là lúc dịch sôi bùng lên (thời điểm 0 phút). Trong suốt quá trình gia nhiệt, phải liên tục khuấy đảo đều tay từ đáy nồi để tránh nhiệt tích tụ cục bộ làm cháy khét đường dưới đáy. Cứ mỗi khoảng thời gian định kỳ (ban đầu khoảng 30 phút, càng về sau rút ngắn xuống 15 phút, 10 phút, 5 phút khi dịch bắt đầu đặc sánh), nhắc nhanh nồi lên cân để xác định khối lượng dịch còn lại và lấy 1 giọt mẫu đo độ Brix trên khúc xạ kế; tiếp tục duy trì đun lửa vừa đều cho đến khi dung dịch đạt trạng thái bão hòa ở 60–65 độ Brix thì kết thúc cô đặc.",
+      "cac_chi_tieu_do": [
+        "Khối lượng nồi không (m_noi, g)",
+        "Khối lượng dung dịch và độ Brix ban đầu (m_0, Brix_0)",
+        "Khối lượng dịch và độ Brix theo thời gian t (m_t, Brix_t)",
+        "Tổng thời gian cô đặc đến điểm bão hòa (t_tong, phút hoặc giờ)"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Lượng nước bốc hơi lý thuyết",
-          "ky_hieu": "W_lt (kg)",
-          "cong_thuc": "W_lt = m_cd_vao * [1 - (Bx_vao / Bx_ra)]",
-          "giai_thich": "Khối lượng nước cần làm bay hơi khỏi thể tích nước mía ban đầu để đạt nồng độ Brix mật chè mong muốn."
+          "ten_cong_thuc": "Khối lượng dung dịch đường tại thời điểm t",
+          "bieu_thuc": "m_dich_t = m_(noi+dich_t) - m_noi",
+          "y_nghia": "Xác định trực tiếp khối lượng dịch còn lại mà không cần sang chiết làm nguội dịch."
         },
         {
-          "ten_chi_tieu": "Tỷ số cô đặc (Hệ số cô đặc)",
-          "ky_hieu": "K_cd",
-          "cong_thuc": "K_cd = Bx_ra / Bx_vao = m_cd_vao / m_cd_ra",
-          "giai_thich": "Mức độ tăng nồng độ chất tan qua quá trình làm bốc hơi dung môi."
+          "ten_cong_thuc": "Lượng nước đã bay hơi sau thời gian t",
+          "bieu_thuc": "W_bayhoi_t = m_0 - m_dich_t",
+          "y_nghia": "Lượng dung môi nước đã bốc thoát ra ngoài môi trường."
         },
         {
-          "ten_chi_tieu": "Hiệu suất bảo toàn chất khô hòa tan trong quá trình cô đặc",
-          "ky_hieu": "H_cd (%)",
-          "cong_thuc": "H_cd = [(m_cd_ra * Bx_ra) / (m_cd_vao * Bx_vao)] * 100",
-          "giai_thich": "Đánh giá mức độ tổn thất chất khô hòa tan do trào bọt, bắn tóe hoặc phân hủy nhiệt."
+          "ten_cong_thuc": "Tỷ lệ bốc hơi nước tổng thể",
+          "bieu_thuc": "H_bayhoi (%) = ((m_0 - m_cuoi) / m_0) * 100",
+          "y_nghia": "Đánh giá phần trăm lượng nước đã bốc hơi trong toàn bộ quá trình cô đặc đến khi đạt 60-65 °Bx."
         }
       ]
     },
     {
       "bai_so": 5,
-      "ten_bai": "Kỹ thuật nấu đường non và gây mầm kết tinh",
-      "mo_ta_thi_nghiem": "Mật chè sau cô đặc tiếp tục được gia nhiệt trong điều kiện áp suất chân không để nâng nồng độ dung dịch vượt ngưỡng bão hòa ($S_s > 1.0$), bước vào vùng quá bão hòa giả bền thích hợp cho sự hình thành mầm tinh thể. Sinh viên quan sát hiện tượng kết sợi của giọt mật chè, tiến hành đưa giống mầm đường mịn (đường bột pha cồn hoặc dung dịch mầm chuẩn) vào nồi nấu với khối lượng và kích thước đồng đều nhằm định hình nhân tinh thể. Sau giai đoạn gây mầm, duy trì cấp liên tục từng đợt siro mới với tốc độ ổn định kết hợp điều chỉnh chân không và nhiệt độ sôi thích hợp để các phân tử saccharose tiếp tục bồi đắp làm lớn mầm tinh thể mà không sinh ra mầm dại, tạo thành khối hỗn hợp đường non gồm các tinh thể đường lơ lửng trong mật cái.",
-      "thong_so_thuc_nghiem": [
-        "Độ Brix mật chè đưa vào nấu: Bx_siro (%)",
-        "Độ Brix đường non kết thúc nấu: Bx_non (%)",
-        "Độ Pol đường non thu được: Pol_non (%)",
-        "Độ tinh khiết của mật chè nạp: J (%)",
-        "Độ tinh khiết của đường non: AP_non (%)",
-        "Hệ số quá bão hòa tại điểm gieo mầm: S_s"
+      "ten_bai": "Kết tinh đường cưỡng bức bằng phương pháp gieo mầm",
+      "mo_ta_tien_hanh": "Nối tiếp ngay sau khi quá trình cô đặc kết thúc (khi dung dịch đường đạt nồng độ bão hòa khoảng 60–65 độ Brix và còn đang nóng trên bếp), cân chính xác 10g đường cát trắng làm mầm tinh thể. Dùng rây rây từ từ, rải đều 10g đường mầm này vào nồi nước đường bão hòa trên bếp nhằm phân tán đều các tâm kết tinh, tuyệt đối không đổ ụp một chỗ làm hạt mầm vón cục. Duy trì nhiệt độ sôi nhẹ lăn tăn trên bếp, hạ nhỏ lửa để không bị khét cục bộ, kết hợp khuấy đảo liên tục đều tay cho các phân tử đường trong dung dịch quá bão hòa kết tụ bám vào bề mặt hạt mầm tinh thể lớn dần lên. Khi dung dịch đường cạn hết dung môi tự do, keo sệt quánh lại hoàn toàn thì tắt bếp và nhanh chóng đổ ra khay/khuôn phẳng để nguội, kết tinh đông đặc tạo sản phẩm đường thô (dạng đường đen/đường thẻ thủ công).",
+      "cac_chi_tieu_do": [
+        "Khối lượng mầm đường cát bổ sung (10 g)",
+        "Thời gian kết tinh từ lúc gieo mầm đến khi quánh đặc (phút)",
+        "Khối lượng sản phẩm đường sau kết tinh (g)"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Hệ số quá bão hòa",
-          "ky_hieu": "S_s",
-          "cong_thuc": "S_s = C_tt / C_bh",
-          "giai_thich": "Tỷ số giữa nồng độ saccharose thực tế trong dung dịch tại thời điểm nấu (C_tt) và nồng độ hòa tan bão hòa ở cùng nhiệt độ (C_bh); điểm gây giống lý tưởng khi S_s nằm trong khoảng 1.20 - 1.35."
-        },
-        {
-          "ten_chi_tieu": "Tỷ lệ tinh thể hóa lý thuyết trong đường non",
-          "ky_hieu": "Y_tt (%)",
-          "cong_thuc": "Y_tt = [(Bx_non - Bx_mat_cai) / (100 - Bx_mat_cai)] * 100",
-          "giai_thich": "Tỷ lệ khối lượng tinh thể đường kết tinh ra được so với tổng khối lượng khối đường non nấu thành công."
-        },
-        {
-          "ten_chi_tieu": "Hiệu suất chuyển hóa đường thành tinh thể",
-          "ky_hieu": "H_nau (%)",
-          "cong_thuc": "H_nau = [Pol_non * (AP_non - AP_mat_cai)] / [AP_non * (100 - AP_mat_cai)] * 100",
-          "giai_thich": "Hiệu suất kết tinh saccharose từ pha lỏng sang dạng tinh thể rắn trong nồi nấu."
+          "ten_cong_thuc": "Hiệu suất thu hồi sản phẩm đường kết tinh thô",
+          "bieu_thuc": "H_kettinh (%) = (m_duong_thu_duoc / (m_dich_baohao + m_duong_mam)) * 100",
+          "y_nghia": "Đánh giá hiệu quả thu hồi khối lượng đường non kết tinh từ dịch cô đặc và mầm giống."
         }
       ]
     },
     {
       "bai_so": 6,
-      "ten_bai": "Ly tâm tách mật, sấy khô và tính toán hiệu suất thu hồi đường tổng thể",
-      "mo_ta_thi_nghiem": "Đường non sau khi trải qua giai đoạn bồi tinh làm nguội để tinh thể kết tinh triệt để sẽ được đưa vào máy ly tâm lồng lưới có màng lọc mịn. Khi động cơ ly tâm quay ở vận tốc cao, lực ly tâm đẩy phần mật cái xuyên qua các khe lưới lọc ra ngoài, trong khi các tinh thể đường cát được giữ lại bám đều trên thành lồng quay. Tiến hành xối rửa nhẹ bề mặt lớp đường bằng tia nước nóng hoặc hơi nước sạch để cuốn trôi lớp màng mật bám quanh tinh thể, sau đó gạt đường ra khỏi thành lồng, sấy khô mẫu đường cát bằng tủ sấy hoặc luồng không khí nóng đến độ ẩm quy chuẩn ($W \\le 0.05\\%$). Cân toàn bộ khối lượng đường cát thu được, đo các chỉ tiêu chất lượng (Pol, độ ẩm, độ màu ICUMSA) và áp dụng công thức kinh điển Noël Deerr ($S-J-M$) để so sánh hiệu suất thu hồi thực tế với hiệu suất lý thuyết.",
-      "thong_so_thuc_nghiem": [
-        "Khối lượng khối đường non nạp vào ly tâm: m_non (kg)",
-        "Khối lượng đường thành phẩm sau ly tâm và sấy: m_duong (kg)",
-        "Độ Pol đường thành phẩm: S (%)",
-        "Độ tinh khiết của mật chè ban đầu: J (%)",
-        "Độ tinh khiết của mật rỉ (mật cuối): M (%)",
-        "Độ ẩm đường thành phẩm: W_sp (%)"
+      "ten_bai": "Ứng dụng đường chế biến Kẹo dẻo và Kẹo đậu phộng (kẹo hạt)",
+      "mo_ta_tien_hanh": "Do thời gian nấu đường kéo dài (4–5 tiếng), sinh viên sử dụng đường thương phẩm có sẵn để thực hành chế biến song song 2 sản phẩm kẹo. Đối với Kẹo dẻo: Cân 15g gelatin ngâm vào 50g nước trái cây hoặc sữa khoảng 15–30 phút cho trương nở hoàn toàn; đồng thời hòa tan 90g đường với 35g nước lọc trong nồi, đun sôi đến chính xác 110 °C thì nhấc nồi ra khỏi bếp ngay, đổ hỗn hợp gelatin đã nở cùng 7g nước cốt chanh/tắc vào, khuấy nhẹ đều tay một chiều cho tan trong (tránh đánh mạnh tạo bọt khí làm gãy liên kết gelatin) rồi rót vào khuôn silicone, để đông tự nhiên ở nhiệt độ phòng từ 2–4 giờ (không cho vào tủ lạnh ngay tránh sốc nhiệt làm hỏng cấu trúc gel). Đối với Kẹo đậu phộng: Cân 50g đậu hạt đem rang chín thơm, bóc sạch vỏ lụa; hòa tan 80g đường, 38g nước lọc, khoảng 0.5g muối và 5g nước cốt chanh vào nồi, đun sôi 15–20 phút cho nước đường keo lại đạt độ Brix khoảng 90 °Bx (thử giọt đường vào nước lạnh thấy đông dẻo không tan), nhanh tay trút đậu phộng rang vào đảo đều, đổ ra khay có lót giấy chống dính, cán phẳng và để nguội trong 1 giờ rồi cắt khối.",
+      "cac_chi_tieu_do": [
+        "Khối lượng các nguyên liệu theo công thức chuẩn (g)",
+        "Nhiệt độ kết thúc nấu siro kẹo dẻo (110 °C)",
+        "Độ Brix siro kẹo đậu (~90 °Bx)",
+        "Thời gian làm nguội và đông đặc cấu trúc (giờ)",
+        "Khối lượng thành phẩm thu được sau khi đóng khuôn (g)"
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_chi_tieu": "Hiệu suất ly tâm tách đường",
-          "ky_hieu": "H_lt (%)",
-          "cong_thuc": "H_lt = (m_duong / m_non) * 100",
-          "giai_thich": "Tỷ lệ khối lượng đường cát tinh thể thu được trên khối lượng đường non đem ly tâm."
+          "ten_cong_thuc": "Công thức phối liệu Kẹo dẻo gelatin",
+          "bieu_thuc": "Nước trái cây/sữa (50g) + Gelatin (15g) + Đường (90g) + Nước lọc (35g) + Nước cốt chanh/tắc (7g)",
+          "y_nghia": "Tỷ lệ phối chế chuẩn tạo gel dẻo dai đàn hồi, axit chanh giúp chuyển hóa đường chống lại đường và tạo vị chua ngọt hài hòa."
         },
         {
-          "ten_chi_tieu": "Hiệu suất thu hồi đường lý thuyết theo công thức S-J-M (Noël Deerr)",
-          "ky_hieu": "H_SJM (%)",
-          "cong_thuc": "H_SJM = [S * (J - M)] / [J * (S - M)] * 100",
-          "giai_thich": "Hiệu suất thu hồi saccharose lý thuyết tối đa tính theo công thức Noël Deerr, trong đó S là độ tinh khiết (Pol) của đường thành phẩm, J là độ tinh khiết mật chè, M là độ tinh khiết của mật rỉ thải ra."
+          "ten_cong_thuc": "Công thức phối liệu Kẹo đậu hạt",
+          "bieu_thuc": "Đậu phộng/hạt rang (50g) + Đường (80g) + Nước lọc (38g) + Muối (~0.5g) + Nước cốt chanh (5g)",
+          "y_nghia": "Tỷ lệ tạo màng siro thủy tinh vô định hình bao quanh hạt giòn, đun đến 90 °Bx kết hợp axit chanh để tránh hiện tượng lại đường kết tinh hạt cát."
         },
         {
-          "ten_chi_tieu": "Hiệu suất thu hồi toàn bộ quy trình sản xuất",
-          "ky_hieu": "H_tong (%)",
-          "cong_thuc": "H_tong = (H_ep / 100) * (H_ls / 100) * (H_cd / 100) * (H_lt / 100) * 100",
-          "giai_thich": "Hiệu suất thu hồi đường thực tế tích hợp qua cả 4 công đoạn chính: Ép mía -> Làm sạch -> Cô đặc -> Ly tâm tách đường."
+          "ten_cong_thuc": "Hiệu suất thu hồi sản phẩm kẹo",
+          "bieu_thuc": "H_keo (%) = (m_keo_thanh_pham / tong_m_nguyen_lieu_dau_vao) * 100",
+          "y_nghia": "Đánh giá tỷ lệ hao hụt do bốc hơi nước và dính dụng cụ trong quá trình nấu kẹo."
         }
       ]
     }

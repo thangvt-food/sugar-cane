@@ -5,50 +5,96 @@ const guide = JSON.parse(guideSource);
 
 const procedures = [
   [
-    "Chuẩn bị và phân loại mẫu mía; làm sạch bụi bẩn, rễ và lá khô.",
-    "Đo kích thước, cân khối lượng mẫu; lấy mẫu dịch ở phần ngọn, thân và gốc để đánh giá độ chín.",
-    "Ép lấy nước mía, lọc qua vải mịn để loại bỏ vụn bã cơ học.",
-    "Đo độ Brix của nước mía bằng khúc xạ kế; làm trong mẫu theo quy trình phòng thí nghiệm để đo độ Pol bằng phân cực kế.",
-    "Tính độ tinh khiết biểu kiến, hệ số chín và CCS; dùng kết quả để nhận xét khả năng thu hồi đường.",
+    "Pha các dung dịch đường chuẩn ở những nồng độ khác nhau hoặc chuẩn bị các mẫu đường đã biết nồng độ.",
+    "Chọn khúc xạ kế có thang đo phù hợp với mẫu: loại 0–35 °Bx cho dung dịch loãng hoặc thang kép 0–50 / 50–90 °Bx cho mẫu đặc.",
+    "Rửa lăng kính bằng nước cất, thấm khô bằng giấy mềm; nhỏ một giọt mẫu lên lăng kính và đậy nắp, tránh tạo bọt khí.",
+    "Quan sát qua thị kính, đọc giá trị tại đường phân cách sáng – tối; không tự ý vặn trục làm lệch thang đo chuẩn.",
+    "Ghi nồng độ chuẩn và °Bx đo được, lập đồ thị tương quan nồng độ (%) – °Bx và đánh giá sai số đo.",
   ],
   [
-    "Chặt hoặc xé mía thành đoạn nhỏ để phá vỡ mô và giải phóng dịch bào.",
-    "Đưa mía qua hệ thống trục ép; nếu thực hiện ép thẩm thấu, phun đều nước ấm 50–60 °C lên bã giữa các lần ép theo hướng dẫn của giảng viên.",
-    "Thu gom toàn bộ nước mía hỗn hợp và bã mía sau ép vào các dụng cụ riêng.",
-    "Cân khối lượng mía, nước mía, bã và lượng nước thẩm thấu bổ sung; lấy mẫu đo Pol của mía, nước mía và bã.",
-    "Tính tỷ lệ trích ly nước mía và hiệu suất ép theo lượng đường thu hồi cũng như lượng đường còn mất theo bã.",
+    "Chuẩn bị 3 mẫu mía, mỗi mẫu khoảng 1.000 g; ghi khối lượng thực tế. Rửa sạch bề mặt và lau khô, không chặt vụn.",
+    "Ép từng mẫu lần 1; thu riêng nước mía ép 1 và bã mía 1, sau đó cân các phần.",
+    "Cân lượng nước sạch bằng khối lượng bã mía 1 (tỷ lệ nước : bã = 1 : 1); rưới đều lên bã và để thẩm thấu 30 phút.",
+    "Ép bã lần 2; thu riêng nước mía ép 2 và bã ép 2, rồi cân khối lượng.",
+    "Với nước mía ép 1, ghi khối lượng, Brix, pH (tham khảo 5,5–5,8) và đánh giá màu sắc, mùi, vị, độ đục, độ đồng nhất.",
+    "Với nước mía ép 2, ghi khối lượng, Brix và pH; tính tỷ lệ thu hồi và chuẩn hóa theo Brix tiêu chuẩn 15 °Bx.",
   ],
   [
-    "Đo và ghi nhận pH, Brix, Pol của nước mía hỗn hợp trước làm sạch.",
-    "Gia nhiệt sơ bộ nước mía đến 55–60 °C.",
-    "Châm từ từ sữa vôi Ca(OH)₂ 10–12 °Bé, theo dõi đến pH 7,0–7,2.",
-    "Gia nhiệt nhanh hỗn hợp đến 100–105 °C để hỗ trợ kết tủa tạp chất.",
-    "Chuyển hỗn hợp sang ống lắng có chất trợ lắng; gạn lấy nước chè trong và lọc phần bùn.",
-    "Đo các chỉ tiêu của nước chè trong, cân lượng thu được; tính hiệu quả làm sạch, loại bỏ chất không đường và thu hồi saccharose.",
+    "Gộp nước mía từ các lần ép của Bài 2, cân tổng khối lượng dung dịch thô.",
+    "Tính lượng nước vôi trong Ca(OH)₂ 20% theo tỷ lệ nhóm: Nhóm 1 dùng 10%, Nhóm 2 dùng 15%, Nhóm 3 dùng 18% so với khối lượng nước mía.",
+    "Bổ sung nước vôi, khuấy đều và để yên 45–60 phút để trung hòa axit, tạo kết tủa và lắng cặn.",
+    "Cân vải lọc khô trước khi lọc; lọc hỗn hợp qua vải.",
+    "Cân lại vải có bùn ẩm và cân dung dịch nước mía trong sau lọc.",
+    "Đo Brix và pH trước/sau làm sạch; tính khối lượng bùn, tỷ lệ bùn và tỷ lệ thu hồi dịch trong.",
   ],
   [
-    "Cân lượng nước chè trong nạp vào nồi; đo và ghi Brix ban đầu.",
-    "Cô đặc bằng nồi chân không hoặc nồi có cánh khuấy; duy trì gia nhiệt đều và kiểm soát áp suất, hạn chế caramel hóa.",
-    "Lấy mẫu định kỳ theo các mốc thời gian; ghi Brix, pH và nhiệt độ sôi của dung dịch.",
-    "Dừng gia nhiệt khi mật chè đạt 60–65 °Brix; cân khối lượng mật chè thu được.",
-    "Tính lượng nước bốc hơi lý thuyết, tỷ số cô đặc và hiệu suất bảo toàn chất khô hòa tan.",
+    "Cân nồi sạch, rỗng trước khi gia nhiệt để có thể cân nhanh cả nồi trong quá trình cô đặc.",
+    "Cho toàn bộ nước mía trong sau lọc vào nồi; ghi khối lượng và Brix ban đầu.",
+    "Gia nhiệt đến khi dịch sôi bùng lên; lấy thời điểm này làm mốc 0 phút.",
+    "Khuấy liên tục từ đáy nồi để tránh cháy khét; định kỳ cân nồi và lấy một giọt mẫu đo Brix. Rút ngắn khoảng thời gian lấy mẫu khi dịch bắt đầu sánh.",
+    "Kết thúc khi dịch đạt 60–65 °Bx; ghi thời gian, khối lượng dịch cuối và tính lượng nước bay hơi, tỷ lệ bốc hơi.",
   ],
   [
-    "Nạp mật chè sau cô đặc vào nồi nấu; gia nhiệt trong điều kiện chân không để đưa dung dịch vào vùng quá bão hòa.",
-    "Quan sát hiện tượng kết sợi của giọt mật chè để theo dõi trạng thái dung dịch.",
-    "Bổ sung mầm tinh thể đường theo hướng dẫn, bảo đảm lượng và kích thước mầm phù hợp.",
-    "Sau khi gây mầm, cấp thêm siro từng đợt với tốc độ ổn định; điều chỉnh chân không và nhiệt độ để tinh thể lớn lên, hạn chế tạo mầm dại.",
-    "Ghi các chỉ tiêu mật chè và đường non; tính hệ số quá bão hòa, tỷ lệ tinh thể hóa và hiệu suất kết tinh theo số liệu thực đo.",
+    "Tiếp tục ngay sau khi cô đặc, khi dịch đường 60–65 °Bx còn nóng trên bếp; cân chính xác 10 g đường cát trắng làm mầm.",
+    "Dùng rây rải mầm từ từ và đều lên dịch đường; không đổ dồn một chỗ để tránh vón cục.",
+    "Giữ sôi lăn tăn, hạ nhỏ lửa và khuấy liên tục để đường kết tinh bám lên mầm, đồng thời tránh khét cục bộ.",
+    "Khi dung dịch quánh đặc và cạn dung môi tự do, tắt bếp; nhanh chóng đổ ra khay hoặc khuôn phẳng.",
+    "Để nguội cho kết tinh đông đặc; ghi thời gian kết tinh và cân sản phẩm đường thô để tính hiệu suất thu hồi.",
   ],
   [
-    "Để đường non nguội và bồi tinh để tinh thể tiếp tục hình thành.",
-    "Nạp đường non vào máy ly tâm có lồng lưới; quay để tách mật cái khỏi tinh thể đường.",
-    "Rửa nhẹ lớp đường bằng tia nước nóng hoặc hơi nước sạch để loại bỏ màng mật bám ngoài tinh thể.",
-    "Thu đường và sấy đến độ ẩm theo tài liệu (W ≤ 0,05%); cân khối lượng đường thành phẩm.",
-    "Đo Pol, độ ẩm và độ màu ICUMSA; ghi độ tinh khiết mật chè ban đầu và mật rỉ.",
-    "Tính hiệu suất ly tâm, hiệu suất S–J–M và hiệu suất thu hồi toàn bộ quy trình.",
+    "Chuẩn bị nguyên liệu theo công thức kẹo dẻo: ngâm gelatin với nước trái cây hoặc sữa 15–30 phút cho nở.",
+    "Đun đường với nước đến 110 °C rồi nhấc khỏi bếp; thêm gelatin đã nở và nước cốt chanh/tắc, khuấy nhẹ một chiều cho tan.",
+    "Rót kẹo dẻo vào khuôn silicone; để đông ở nhiệt độ phòng 2–4 giờ, không làm lạnh đột ngột.",
+    "Rang 50 g đậu phộng đến thơm, bóc vỏ lụa. Nấu đường, nước, muối và nước cốt chanh 15–20 phút đến khoảng 90 °Bx.",
+    "Trộn nhanh đậu phộng rang vào siro, đổ lên khay có giấy chống dính, cán phẳng; để nguội khoảng 1 giờ rồi cắt.",
+    "Cân thành phẩm mỗi loại và tính hiệu suất thu hồi so với tổng khối lượng nguyên liệu đầu vào.",
   ],
 ];
+
+function FormulaTokens({ expression, isEquation }) {
+  const tokens = expression.match(/\s+|(?:\p{L}[\p{L}\p{N}]*|%)(?:_[\p{L}\p{N}]+)*(?:_\([^)]*\))?|\d+(?:\.\d+)?%?|<=|>=|./gu) || [];
+  return (
+    <>
+      {tokens.map((token, index) => {
+        if (/^\s+$/.test(token)) return token;
+        if (/^[A-Za-z%]/.test(token)) {
+          const groupedSubscript = token.match(/^(.+)_\((.+)\)$/);
+          const symbolAndSubscripts = groupedSubscript ? groupedSubscript[1] : token;
+          const [symbol, ...subscripts] = symbolAndSubscripts.split("_");
+          return (
+            <span className="guide-equation-token" key={`${token}-${index}`}>
+              {symbol}
+              {subscripts.length > 0 && <sub>{subscripts.join("")}</sub>}
+              {groupedSubscript && (
+                <sub>
+                  (
+                  <FormulaTokens expression={groupedSubscript[2]} isEquation={isEquation} />
+                  )
+                </sub>
+              )}
+            </span>
+          );
+        }
+        const operator = {
+          "*": "×",
+          "/": isEquation ? "÷" : "/",
+          "<=": "≤",
+          ">=": "≥",
+        }[token] || token;
+        return <span className="guide-equation-token" key={`${token}-${index}`}>{operator}</span>;
+      })}
+    </>
+  );
+}
+
+function FormulaExpression({ expression }) {
+  const isEquation = expression.includes("=");
+  return (
+    <div className="guide-equation" aria-label={expression}>
+      <FormulaTokens expression={expression} isEquation={isEquation} />
+    </div>
+  );
+}
 
 export default function GuidePage() {
   const goToLesson = (lessonNo) => {
@@ -71,8 +117,8 @@ export default function GuidePage() {
       <main className="guide-main">
         <section className="guide-hero">
           <span className="guide-eyebrow">HƯỚNG DẪN THỰC HÀNH · 6 BÀI</span>
-          <h1>{guide.mon_hoc}</h1>
-          <p>{guide.noi_dung_video}. Các bước dưới đây được trình bày theo thứ tự thao tác trong từng bài.</p>
+          <h1>{guide.mon_thuc_hanh}</h1>
+          <p>Các bước thực hiện, chỉ tiêu cần ghi và công thức tính cho từng bài thực hành.</p>
           <nav className="guide-lesson-nav" aria-label="Chọn bài thực hành">
             {guide.danh_sach_bai_thi_nghiem.map((lesson) => (
               <button key={lesson.bai_so} type="button" onClick={() => goToLesson(lesson.bai_so)}>
@@ -88,7 +134,7 @@ export default function GuidePage() {
               <header className="guide-lesson-head">
                 <span className="guide-lesson-number">BÀI {lesson.bai_so}</span>
                 <h2>{lesson.ten_bai}</h2>
-                <p>{lesson.mo_ta_thi_nghiem}</p>
+                <p>{lesson.mo_ta_tien_hanh}</p>
               </header>
 
               <section className="guide-section">
@@ -111,21 +157,21 @@ export default function GuidePage() {
               <section className="guide-section">
                 <h3>Thông số cần ghi</h3>
                 <ul className="guide-parameters">
-                  {lesson.thong_so_thuc_nghiem.map((parameter) => <li key={parameter}>{parameter}</li>)}
+                  {lesson.cac_chi_tieu_do.map((parameter) => <li key={parameter}>{parameter}</li>)}
                 </ul>
               </section>
 
               <section className="guide-section">
                 <h3>Công thức tính</h3>
+                <p className="guide-formula-note">Công thức được giữ ở dạng tổng quát; các ký hiệu chỉ số dưới giúp phân biệt từng đại lượng.</p>
                 <div className="guide-formulas">
                   {lesson.cong_thuc_tinh_toan.map((formula) => (
-                    <div className="guide-formula" key={formula.ky_hieu}>
-                      <div>
-                        <strong>{formula.ten_chi_tieu}</strong>
-                        <span>{formula.ky_hieu}</span>
+                    <div className="guide-formula" key={formula.ten_cong_thuc}>
+                      <div className="guide-formula-title">
+                        <strong>{formula.ten_cong_thuc}</strong>
                       </div>
-                      <code>{formula.cong_thuc}</code>
-                      <p>{formula.giai_thich}</p>
+                      <FormulaExpression expression={formula.bieu_thuc} />
+                      <p>{formula.y_nghia}</p>
                     </div>
                   ))}
                 </div>
