@@ -60,11 +60,11 @@
     },
     {
       "bai_so": 3,
-      "ten_bai": "Làm sạch nước mía bằng nước vôi trong Ca(OH)2 20%",
-      "mo_ta_tien_hanh": "Gộp toàn bộ lượng nước mía thu được từ các lần ép của bài 2 lại để cân tổng khối lượng dung dịch nước mía thô ban đầu. Tùy theo nhóm thí nghiệm, bổ sung dung dịch nước vôi trong Ca(OH)2 nồng độ 20% theo tỷ lệ khối lượng quy định (Nhóm 1: 10%, Nhóm 2: 15%, Nhóm 3: 18% so với tổng khối lượng nước mía). Sau khi cho vôi vào, khuấy đều hỗn hợp và để yên trong 45–60 phút nhằm tạo điều kiện cho phản ứng trung hòa axit, kết tủa tạp chất và lắng cặn diễn ra hoàn toàn. Tiến hành lọc hỗn hợp qua tấm vải lọc (cần cân khối lượng vải lọc khô trước khi lọc); sau khi dung dịch chảy qua hết, thu dung dịch nước mía trong sau lọc và đem cân lại tấm vải chứa cặn bùn ẩm để xác định lượng bùn tách được, đồng thời kiểm tra lại độ Brix và pH (pH chuyển dịch về vùng trung tính).",
+      "ten_bai": "Làm sạch nước mía bằng nước vôi trong Ca(OH)2",
+      "mo_ta_tien_hanh": "Gộp toàn bộ lượng nước mía thu được từ các lần ép của bài 2 lại để cân tổng khối lượng dung dịch nước mía thô ban đầu. Tùy theo nhóm thí nghiệm, bổ sung dung dịch nước vôi trong Ca(OH)2 theo tỷ lệ khối lượng quy định (Nhóm 1: 10%, Nhóm 2: 15%, Nhóm 3: 18% so với tổng khối lượng nước mía). Sau khi cho vôi vào, khuấy đều hỗn hợp và để yên trong 45–60 phút nhằm tạo điều kiện cho phản ứng trung hòa axit, kết tủa tạp chất và lắng cặn diễn ra hoàn toàn. Tiến hành lọc hỗn hợp qua tấm vải lọc (cần cân khối lượng vải lọc khô trước khi lọc); sau khi dung dịch chảy qua hết, thu dung dịch nước mía trong sau lọc và đem cân lại tấm vải chứa cặn bùn ẩm để xác định lượng bùn tách được, đồng thời kiểm tra lại độ Brix và pH (pH chuyển dịch về vùng trung tính).",
       "cac_chi_tieu_do": [
         "Tổng khối lượng nước mía thô gộp lại (m_nm_tong, g)",
-        "Khối lượng dung dịch nước vôi trong 20% cần thêm (m_voi, g)",
+        "Khối lượng dung dịch nước vôi trong cần thêm (m_voi, g)",
         "Khối lượng tấm vải lọc khô (m_vai_kho, g)",
         "Khối lượng tấm vải lọc dính bùn cặn sau lọc (m_vai_bun, g)",
         "Khối lượng dung dịch nước mía trong sau lọc (m_dich_sau_loc, g)",
@@ -72,9 +72,9 @@
       ],
       "cong_thuc_tinh_toan": [
         {
-          "ten_cong_thuc": "Khối lượng nước vôi trong 20% cần bổ sung",
+          "ten_cong_thuc": "Khối lượng nước vôi trong cần bổ sung",
           "bieu_thuc": "m_voi = m_nm_tong * (%_voi_quy_dinh / 100)",
-          "y_nghia": "Tính toán lượng nước vôi 20% cần cân (với tỷ lệ tương ứng 10%, 15% hoặc 18% theo từng nhóm)."
+          "y_nghia": "Tính lượng nước vôi cần cân theo tỷ lệ của từng nhóm: 10%, 15% hoặc 18% khối lượng nước mía."
         },
         {
           "ten_cong_thuc": "Khối lượng cặn bùn tách ra sau lọc",

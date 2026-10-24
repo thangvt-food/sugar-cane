@@ -21,7 +21,7 @@ const procedures = [
   ],
   [
     "Gộp nước mía từ các lần ép của Bài 2, cân tổng khối lượng dung dịch thô.",
-    "Tính lượng nước vôi trong Ca(OH)₂ 20% theo tỷ lệ nhóm: Nhóm 1 dùng 10%, Nhóm 2 dùng 15%, Nhóm 3 dùng 18% so với khối lượng nước mía.",
+    "Tính lượng nước vôi trong Ca(OH)₂ theo tỷ lệ nhóm: Nhóm 1 dùng 10%, Nhóm 2 dùng 15%, Nhóm 3 dùng 18% so với khối lượng nước mía.",
     "Bổ sung nước vôi, khuấy đều và để yên 45–60 phút để trung hòa axit, tạo kết tủa và lắng cặn.",
     "Cân vải lọc khô trước khi lọc; lọc hỗn hợp qua vải.",
     "Cân lại vải có bùn ẩm và cân dung dịch nước mía trong sau lọc.",
