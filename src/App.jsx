@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { ReportProvider, useReport } from "./store/ReportContext";
 import { useDevice } from "./hooks/useDevice";
@@ -11,8 +11,16 @@ import Exp3 from "./pages/Exp3";
 import Exp4 from "./pages/Exp4";
 import Exp5 from "./pages/Exp5";
 import Exp6 from "./pages/Exp6";
+import GuidePage from "./pages/GuidePage";
 
 function Shell() {
+  const location = useLocation();
+  if (location.pathname === "/guide") return <GuidePage />;
+
+  return <AuthenticatedShell />;
+}
+
+function AuthenticatedShell() {
   const { user, loading } = useAuth();
   const { progress } = useReport();
   const device = useDevice();

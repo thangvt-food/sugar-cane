@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function AuthPage() {
@@ -50,6 +51,7 @@ export default function AuthPage() {
         </form>
         <button className="btn secondary" onClick={google}>Đăng nhập bằng Google</button>
         <p className="hint tiny">Chưa đăng nhập vẫn dùng được — số liệu lưu trên máy, đăng nhập sẽ đồng bộ cloud.</p>
+        <Link className="auth-guide-link" to="/guide">Xem hướng dẫn thực hành 6 bài</Link>
       </div>
     </div>
   );
