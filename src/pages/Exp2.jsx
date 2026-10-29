@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import { useReport } from "../store/ReportContext";
 import { fmt, mean, sd, toNum, rowMeanSd } from "../lib/stats";
+import { STANDARD_BRIX, caneKgForRepeat, extractionPct, normalizedPct, osmosisPct } from "../lib/formulas";
 import { AutoTag, BigText, DescBlock, NumInput, SectionCard } from "../components/ui";
 
 // ---------------------------------------------------------------------------
-// Việt hóa tên chỉ tiêu (giữ nguyên key tiếng Anh trong store để không mất
-// số liệu cũ, chỉ đổi nhãn hiển thị).
+// Việt hóa (giữ key tiếng Anh trong store để không mất số liệu cũ).
 // ---------------------------------------------------------------------------
 const PARAM_VI = {
   "Juice (gr)": "Nước ép (g)",
   "Bagasse (gr)": "Bã mía (g)",
   "Juice (%)": "Hiệu suất ép (%)",
-  "Juice (norm)": "Hiệu suất chuẩn hoá (%)",
+  "Juice (norm)": `Tỉ lệ chuẩn hoá (%) (${STANDARD_BRIX} °Bx)`,
   "°Bx": "Độ Brix (°Bx)",
   "pH": "pH",
   "Colour": "Màu sắc (0–10)",
@@ -21,7 +21,14 @@ const PARAM_VI = {
   "State": "Trạng thái chung (0–10)",
 };
 
-const viParam = (en) => PARAM_VI[en] || en;
+// Bảng 2.4 là lần ép lại sau khi ngâm bã → cùng key nhưng khác tên chỉ tiêu.
+const PARAM_VI_J1 = {
+  "Juice (gr)": "Nước ép 2 (g)",
+  "Bagasse (gr)": "Bã sau ép 2 (g)",
+  "Juice (%)": "Hiệu suất ép 2 (%)",
+};
+
+const viParam = (en, table) => (table === "j1" && PARAM_VI_J1[en]) || PARAM_VI[en] || en;
 
 const TITLE_VI = "Thí nghiệm 2: Ép và đánh giá nước mía";
 const INTRO_VI =
@@ -30,20 +37,14 @@ const INTRO_VI =
   "Ở thí nghiệm này, mỗi chỉ tiêu đo lặp lại 3 lần, dùng thống kê mô tả (trung bình ± độ lệch chuẩn, CV%) để nhận xét.";
 
 // ---------------------------------------------------------------------------
-// Ô TỰ TÍNH — phiếu gốc không ghi công thức nên app chốt quy ước sau
-// (ghi rõ dưới mỗi bảng; nếu GV định nghĩa khác thì báo để đổi):
+// Ô TỰ TÍNH — theo công thức trong hướng dẫn thực hành (src/lib/formulas.js):
 //   Bảng 2.1:
-//     • Juice (%)  = Nước ép lần i (g) / Khối lượng mía lần i (g) × 100
-//                    → hiệu suất ép trên đầu vào. Mặc định 1 khối lượng chung
-//                      cả 3 lần; tick "3 mẫu khác khối lượng" để nhập riêng
-//                      từng lần (app tính đúng từng cặp).
-//     • Juice (norm) = Nước ép / (Nước ép + Bã) × 100
-//                    → hiệu suất chuẩn hoá theo tổng thực thu (loại hao hụt),
-//                      so với Juice (%) sẽ thấy % hao hụt.
-//   Bảng 2.4 (ép lại bã, nước : bã = 1:1):
-//     • Juice (%)  = Juice1 / (Juice1 + Bã sau ép lại) × 100
-//   Còn lại (Nước ép/Bã cân trực tiếp, °Bx/pH đo máy, 5 điểm cảm quan chấm
-//   tay, Mean/SD) giữ nguyên: cân/đo/chấm thủ công, Mean/SD máy tự tính.
+//     • Juice (%)     = H_thuhoi_1 = m_nm1 / m_mia × 100
+//     • Juice (norm)  = Tỷ lệ chuẩn hoá = H_thuhoi_1 × K_hieuchinh
+//                       với K_hieuchinh = Brix_thực_đo / 15 (Brix chuẩn hoá)
+//   Bảng 2.4 (ngâm bã nước : bã = 1 : 1 nên m_nước_bổ_sung = m_ba1):
+//     • Juice (%)     = H_thuhoi_2 = m_nm2 / (m_ba1 + m_nước) = m_nm2 / (2 × m_ba1)
+//                       bã lấy ở bảng 2.1 của đúng lần đó
 // ---------------------------------------------------------------------------
 const AUTO_MAIN = ["Juice (%)", "Juice (norm)"];
 const AUTO_J1 = ["Juice (%)"];
@@ -57,87 +58,51 @@ function rowByParam(rows, param) {
 // Chỉ số cột lặp
 const K2I = { r1: 0, r2: 1, r3: 2 };
 
-// Khối lượng mía (kg) của từng lần lặp. Tương thích báo cáo cũ chỉ có
-// caneKg chung: nếu chưa bật chế độ riêng hoặc ô riêng còn trống thì
-// rơi về caneKg chung.
-function caneKgForRepeat(exp, k) {
-  const i = K2I[k] ?? 0;
-  const w = exp?.caneW?.[i];
-  const wNum = toNum(w);
-  if (exp?.caneMulti && !Number.isNaN(wNum) && wNum > 0) return wNum;
-  if (!exp?.caneMulti) return toNum(exp?.caneKg);
-  // caneMulti bật nhưng ô riêng trống → fallback caneKg chung (nếu có)
-  if (!Number.isNaN(wNum) && wNum > 0) return wNum;
-  return toNum(exp?.caneKg);
-}
-
 function caneListOf(exp) {
   return ["r1", "r2", "r3"].map((k) => caneKgForRepeat(exp, k));
 }
 
 // Giá trị tự tính cho 1 ô (NaN = chưa đủ dữ kiện)
 function autoCellValue(table, rows, exp, param, k) {
+  const juice = rowByParam(rows, "Juice (gr)")?.[k];
   if (table === "main") {
-    const juice = toNum(rowByParam(rows, "Juice (gr)")?.[k]);
-    const bagasse = toNum(rowByParam(rows, "Bagasse (gr)")?.[k]);
-    if (param === "Juice (%)") {
-      // Mỗi lần lặp tính theo đúng khối lượng mía của lần đó
-      const caneG = caneKgForRepeat(exp, k) * 1000;
-      if (Number.isNaN(juice) || Number.isNaN(caneG) || caneG <= 0) return NaN;
-      return (juice / caneG) * 100;
-    }
-    if (param === "Juice (norm)") {
-      if (Number.isNaN(juice) || Number.isNaN(bagasse)) return NaN;
-      const tong = juice + bagasse;
-      if (tong <= 0) return NaN;
-      return (juice / tong) * 100;
-    }
+    const caneG = caneKgForRepeat(exp, k) * 1000;
+    if (param === "Juice (%)") return extractionPct(juice, caneG);
+    if (param === "Juice (norm)") return normalizedPct(juice, caneG, rowByParam(rows, "°Bx")?.[k]);
     return NaN;
   }
-  // table === "j1"
+  // table === "j1": bã 1 lấy ở bảng 2.1 của đúng lần đó
   if (param === "Juice (%)") {
-    const j = toNum(rowByParam(rows, "Juice (gr)")?.[k]);
-    const b = toNum(rowByParam(rows, "Bagasse (gr)")?.[k]);
-    if (Number.isNaN(j) || Number.isNaN(b)) return NaN;
-    const tong = j + b;
-    if (tong <= 0) return NaN;
-    return (j / tong) * 100;
+    return osmosisPct(juice, rowByParam(exp.rows || [], "Bagasse (gr)")?.[k]);
   }
   return NaN;
 }
 
 function autoMissingReason(table, rows, exp, param, k) {
+  const lan = K2I[k] + 1;
+  if (Number.isNaN(toNum(rowByParam(rows, "Juice (gr)")?.[k])))
+    return table === "main" ? `cần cân Nước ép (g) lần ${lan}` : `cần cân Nước ép 2 (g) lần ${lan}`;
+  if (param === "Juice (norm)" && Number.isNaN(toNum(rowByParam(rows, "°Bx")?.[k])))
+    return `cần đo °Bx lần ${lan}`;
   if (table === "main") {
-    if (param === "Juice (%)") {
-      const caneG = caneKgForRepeat(exp, k) * 1000;
-      if (Number.isNaN(caneG) || caneG <= 0)
-        return exp?.caneMulti ? `cần nhập khối lượng mía lần ${K2I[k] + 1}` : "cần nhập khối lượng mía";
-      if (Number.isNaN(toNum(rowByParam(rows, "Juice (gr)")?.[k]))) return "cần cân Nước ép (g)";
-      return "";
-    }
-    if (param === "Juice (norm)") {
-      if (Number.isNaN(toNum(rowByParam(rows, "Juice (gr)")?.[k]))) return "cần cân Nước ép (g)";
-      if (Number.isNaN(toNum(rowByParam(rows, "Bagasse (gr)")?.[k]))) return "cần cân Bã (g)";
-      return "";
-    }
-  }
-  if (param === "Juice (%)") {
-    if (Number.isNaN(toNum(rowByParam(rows, "Juice (gr)")?.[k]))) return "cần cân Juice 1 (g)";
-    if (Number.isNaN(toNum(rowByParam(rows, "Bagasse (gr)")?.[k]))) return "cần cân Bã (g)";
+    if (Number.isNaN(caneKgForRepeat(exp, k)))
+      return exp?.caneMulti ? `cần nhập khối lượng mía lần ${lan}` : "cần nhập khối lượng mía đem ép";
     return "";
   }
+  const ba1 = toNum(rowByParam(exp.rows || [], "Bagasse (gr)")?.[k]);
+  if (Number.isNaN(ba1) || ba1 <= 0) return `cần cân Bã mía ở bảng 2.1 lần ${lan}`;
   return "";
 }
 
-// Hàng hiệu dụng: ô tự tính được thì dùng số auto (ưu tiên), thiếu thì
-// rơi về số tay cũ (giữ tương thích báo cáo đã nhập trước đây).
+// Hàng hiệu dụng: dòng tự tính luôn tính lại từ số cân gốc — không rơi về số
+// tay đã lưu, vì báo cáo cũ lưu theo quy ước trước đây sẽ thành số sai.
 function effectiveRows(table, rows, exp) {
   return (rows || []).map((r) => {
     if (!isAutoParam(table, r.param)) return r;
     const out = { ...r };
     (["r1", "r2", "r3"]).forEach((k) => {
       const a = autoCellValue(table, rows, exp, r.param, k);
-      out[k] = !Number.isNaN(a) ? String(Math.round(a * 10000) / 10000) : r[k] ?? "";
+      out[k] = Number.isNaN(a) ? "" : String(Math.round(a * 10000) / 10000);
     });
     return out;
   });
@@ -253,8 +218,8 @@ function sinhNhanXet22(exp) {
 
   if (!Number.isNaN(stNorm.m)) {
     out.push(
-      `• Hiệu suất chuẩn hoá (tự tính = Nước ép / (Nước ép + Bã) × 100) trung bình ${fmt(stNorm.m)} ± ${fmt(stNorm.s)}% (CV = ${fmt(stNorm.cv, 1)}%, ${danhGiaCV(stNorm.cv)}). ` +
-        `So chênh với Hiệu suất ép sẽ thấy % hao hụt trong quá trình ép/thu hồi.`
+      `• Tỉ lệ chuẩn hoá (tự tính = Hiệu suất ép × °Bx / ${STANDARD_BRIX}) trung bình ${fmt(stNorm.m)} ± ${fmt(stNorm.s)}% (CV = ${fmt(stNorm.cv, 1)}%, ${danhGiaCV(stNorm.cv)}). ` +
+        `Phần chênh so với hiệu suất ép phản ánh độ ngọt thực tế cao/thấp hơn chuẩn ${STANDARD_BRIX} °Bx của nhà máy.`
     );
   }
 
@@ -415,7 +380,7 @@ function sinhNhanXet25(exp, exp1) {
   }
 
   if (!Number.isNaN(stJ1Pct.m))
-    out.push(`• Hiệu suất thu juice 1 (tự tính = Juice1 / (Juice1 + Bã) × 100) đạt ${fmt(stJ1Pct.m)} ± ${fmt(stJ1Pct.s)}% — lượng dịch thu thêm nhờ ngâm + ép lại, giúp tận thu đường còn kẹt trong bã.`);
+    out.push(`• Hiệu suất ép 2 (tự tính = Nước ép 2 / (Bã 1 + nước ngâm 1 : 1) × 100 = Nước ép 2 / (2 × Bã 1)) đạt ${fmt(stJ1Pct.m)} ± ${fmt(stJ1Pct.s)}% — lượng dịch thu thêm nhờ ngâm + ép lại, giúp tận thu đường còn kẹt trong bã.`);
 
   out.push(
     "• Vì sao °Bx giảm: (1) pha loãng trực tiếp theo tỉ lệ nước : bã = 1 : 1; " +
@@ -428,7 +393,7 @@ function sinhNhanXet25(exp, exp1) {
 // ---------------------------------------------------------------------------
 // Component con
 // ---------------------------------------------------------------------------
-function BangTomTat({ effRows, mobile }) {
+function BangTomTat({ effRows, mobile, table }) {
   const stats = effRows.map((r) => ({ param: r.param, ...rowMeanSd(r.r1, r.r2, r.r3) }));
   const cvOf = ({ m, s }) => (!Number.isNaN(m) && !Number.isNaN(s) && m !== 0 ? (s / Math.abs(m)) * 100 : NaN);
   // Mobile: danh sách gọn thay cho bảng ngang (khỏi kéo scroll)
@@ -440,7 +405,7 @@ function BangTomTat({ effRows, mobile }) {
           const coLieu = !Number.isNaN(s.m);
           return (
             <div className="m-sum-row" key={s.param}>
-              <b>{viParam(s.param)}</b> ·{" "}
+              <b>{viParam(s.param, table)}</b> ·{" "}
               <span className="v">{coLieu ? `${fmt(s.m)} ± ${fmt(s.s)}` : "—"}</span>
               {coLieu && !Number.isNaN(cv) && <span className="v"> · CV {fmt(cv, 1)}%</span>}
               <span className="c">{coLieu ? danhGiaCV(cv) : "chưa có số liệu"}</span>
@@ -467,7 +432,7 @@ function BangTomTat({ effRows, mobile }) {
             const coLieu = !Number.isNaN(s.m);
             return (
               <tr key={s.param}>
-                <td className="param">{viParam(s.param)}</td>
+                <td className="param">{viParam(s.param, table)}</td>
                 <td className="auto">{coLieu ? `${fmt(s.m)} ± ${fmt(s.s)}` : "—"}</td>
                 <td className="auto">{coLieu && !Number.isNaN(cv) ? `${fmt(cv, 1)}%` : "—"}</td>
                 <td className="auto">{coLieu ? danhGiaCV(cv) : "chưa có số liệu"}</td>
@@ -552,12 +517,12 @@ function RepeatTable({ rawRows, exp, table, onCell, mobile }) {
                 <tr key={r.param} className={auto ? "row-auto" : ""}>
                   <td>{i + 1}</td>
                   <td className="param">
-                    {viParam(r.param)}
+                    {viParam(r.param, table)}
                     {auto && (
                       <span className="hint tiny" style={{ display: "block", fontWeight: 400 }}>
                         {r.param === "Juice (%)" && table === "main" && "Nước ép / mía × 100"}
-                        {r.param === "Juice (norm)" && "Nước ép / (Nước ép + Bã) × 100"}
-                        {r.param === "Juice (%)" && table === "j1" && "Juice1 / (Juice1 + Bã) × 100"}
+                        {r.param === "Juice (norm)" && `Hiệu suất ép × °Bx / ${STANDARD_BRIX}`}
+                        {r.param === "Juice (%)" && table === "j1" && "Nước ép 2 / (2 × Bã 1 ở bảng 2.1) × 100"}
                       </span>
                     )}
                   </td>
@@ -567,12 +532,12 @@ function RepeatTable({ rawRows, exp, table, onCell, mobile }) {
                         <OTuTinh
                           value={autoOf(r.param, k)}
                           reason={autoMissingReason(table, rawRows, exp, r.param, k)}
-                          label={viParam(r.param)}
+                          label={viParam(r.param, table)}
                         />
                       </td>
                     ) : (
                       <td key={k}>
-                        <NumInput value={r[k]} ariaLabel={`${viParam(r.param)} lần ${k}`} onChange={(v) => onCell(i, k, v)} />
+                        <NumInput value={r[k]} ariaLabel={`${viParam(r.param, table)} lần ${k}`} onChange={(v) => onCell(i, k, v)} />
                       </td>
                     )
                   )}
@@ -597,7 +562,7 @@ function RepeatTable({ rawRows, exp, table, onCell, mobile }) {
           <div className="m-card" key={r.param}>
             <div className="m-card-head">
               <b>
-                {i + 1}. {viParam(r.param)} {auto && <AutoTag>tự tính</AutoTag>}
+                {i + 1}. {viParam(r.param, table)} {auto && <AutoTag>tự tính</AutoTag>}
               </b>
               <span className="hint">
                 TB {fmt(m)} · SD {fmt(s)}
@@ -611,7 +576,7 @@ function RepeatTable({ rawRows, exp, table, onCell, mobile }) {
                     <OTuTinh
                       value={autoOf(r.param, k)}
                       reason={autoMissingReason(table, rawRows, exp, r.param, k)}
-                      label={viParam(r.param)}
+                      label={viParam(r.param, table)}
                     />
                   </div>
                 ))}
@@ -720,22 +685,22 @@ export default function Exp2({ mode }) {
         </label>
         <RepeatTable rawRows={exp.rows} exp={exp} table="main" mobile={mobile} onCell={(i, k, v) => update(["exp2", "rows", i, k], v)} />
         <p className="hint">
-          Công thức tự tính: Hiệu suất ép (%) = Nước ép (g) / (mía của đúng lần đó (kg) × 1000) × 100 · Hiệu suất chuẩn hoá (%) =
-          Nước ép / (Nước ép + Bã) × 100 (quy ước của app vì phiếu không định nghĩa — chuẩn hoá theo tổng thực thu để thấy hao hụt).
+          Công thức tự tính theo hướng dẫn thực hành: Hiệu suất ép (%) = Nước ép (g) / (mía của đúng lần đó (kg) × 1000) × 100 ·
+          Tỉ lệ chuẩn hoá (%) = Hiệu suất ép × K, với K = °Bx đo được / {STANDARD_BRIX} (Brix chuẩn hoá quy ước).
         </p>
         <h4 style={{ margin: "12px 0 4px" }}>Tóm tắt thống kê nhanh (trung bình ± SD, CV%)</h4>
         {mobile ? (
           <details className="hint-details">
             <summary aria-label="Xem tóm tắt thống kê">📊 Xem tóm tắt</summary>
             <p className="hint">CV = SD / TB × 100%. CV &lt; 5% rất ổn định · 5–10% ổn định · 10–20% biến động TB · &gt; 20% biến động lớn.</p>
-            <BangTomTat effRows={effMain} mobile />
+            <BangTomTat effRows={effMain} table="main" mobile />
           </details>
         ) : (
           <>
             <p className="hint" style={{ margin: 0 }}>
               CV = SD / trung bình × 100%. CV &lt; 5% rất ổn định · 5–10% ổn định · 10–20% biến động trung bình · &gt; 20% biến động lớn.
             </p>
-            <BangTomTat effRows={effMain} />
+            <BangTomTat effRows={effMain} table="main" />
           </>
         )}
       </SectionCard>
@@ -773,7 +738,7 @@ export default function Exp2({ mode }) {
 
       <SectionCard
         title="2.4 — Đánh giá nước mía ép lại từ bã (nước : bã = 1 : 1)"
-        hint="Chỉ cân Juice 1/Bã và đo °Bx/pH. Dòng Hiệu suất juice 1 (%) app tự tính = Juice1 / (Juice1 + Bã) × 100 — công thức này không dùng khối lượng mía nên đúng sẵn cho từng lần, kể cả khi 3 mẫu khác khối lượng."
+        hint="Chỉ cân Nước ép 2/Bã sau ép 2 và đo °Bx/pH. Dòng Hiệu suất ép 2 (%) tự tính = Nước ép 2 / (Bã 1 + nước ngâm) × 100 = Nước ép 2 / (2 × Bã 1), trong đó Bã 1 lấy ở bảng 2.1 của đúng lần đó (nước ngâm = khối lượng bã, tỉ lệ 1 : 1)."
       >
         {coNuocNgam ? (
           <div className="auto-box">
@@ -798,10 +763,10 @@ export default function Exp2({ mode }) {
         {mobile ? (
           <details className="hint-details">
             <summary aria-label="Xem tóm tắt juice 1">📊 Xem tóm tắt</summary>
-            <BangTomTat effRows={effJ1} mobile />
+            <BangTomTat effRows={effJ1} table="j1" mobile />
           </details>
         ) : (
-          <BangTomTat effRows={effJ1} />
+          <BangTomTat effRows={effJ1} table="j1" />
         )}
       </SectionCard>
 

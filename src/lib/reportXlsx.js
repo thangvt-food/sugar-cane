@@ -1,4 +1,19 @@
 import { eqText, linReg, mean, sd, toNum } from "./stats";
+import {
+  EXP3_AUTO_PARAMS,
+  EXP3_DOSES,
+  EXP5_SEED,
+  EXP6_RAW,
+  STANDARD_BRIX,
+  caneKgForRepeat,
+  candyPct,
+  crystalPct,
+  exp3EffectiveRows,
+  extractionPct,
+  netWeightRows,
+  normalizedPct,
+  osmosisPct,
+} from "./formulas";
 
 const DARK = "#1B5E20";
 const GREEN = "#2E7D32";
@@ -15,10 +30,12 @@ const PARAM_VI = {
   "Juice (gr)": "Nước ép (g)",
   "Bagasse (gr)": "Bã mía (g)",
   "Juice (%)": "Hiệu suất ép (%) *",
-  "Juice (norm)": "Hiệu suất chuẩn hoá (%) *",
+  "Juice (norm)": `Tỉ lệ chuẩn hoá (%) (${STANDARD_BRIX} °Bx) *`,
   "°Bx": "Độ Brix (°Bx)",
   "Mud (gr)": "Cặn bùn (g)",
   "Mud (%)": "Tỉ lệ bùn (%) *",
+  "Clear (gr)": "Nước mía trong sau lọc (g)",
+  "Clear (%)": "Hiệu suất dịch trong (%) *",
   pH: "pH",
   Colour: "Màu sắc (0–10)",
   Flavour: "Mùi (0–10)",
@@ -27,13 +44,21 @@ const PARAM_VI = {
   State: "Trạng thái (0–10)",
   Turbidity: "Độ trong (0–10) **",
 };
+
+// Bảng 2.4 là lần ép lại sau ngâm bã → cùng key, khác tên chỉ tiêu.
+const PARAM_VI_J1 = {
+  "Juice (gr)": "Nước ép 2 (g)",
+  "Bagasse (gr)": "Bã sau ép 2 (g)",
+  "Juice (%)": "Hiệu suất ép 2 (%) *",
+};
+
 const GROUPS4 = [
   { bx: "g1bx", w: "g1w", label: "Nhóm 1" },
   { bx: "g2bx", w: "g2w", label: "Nhóm 2" },
   { bx: "g3bx", w: "g3w", label: "Nhóm 3" },
 ];
 
-const viParam = (en) => PARAM_VI[en] || en;
+const viParam = (en, table) => (table === "j1" && PARAM_VI_J1[en]) || PARAM_VI[en] || en;
 const dateText = () => new Date().toLocaleDateString("vi-VN");
 
 const base = { wrap: true, alignVertical: "center", borderColor: LINE };
@@ -81,38 +106,16 @@ function rowByParam(rows, param) {
   return (rows || []).find((row) => row.param === param);
 }
 
-function caneKgForRepeat(exp, key) {
-  const index = { r1: 0, r2: 1, r3: 2 }[key] ?? 0;
-  const weight = toNum(exp?.caneW?.[index]);
-  if (exp?.caneMulti && !Number.isNaN(weight) && weight > 0) return weight;
-  if (!exp?.caneMulti) return toNum(exp?.caneKg);
-  if (!Number.isNaN(weight) && weight > 0) return weight;
-  return toNum(exp?.caneKg);
-}
-
+// Giá trị ô tự tính — dùng chung công thức với trang nhập (src/lib/formulas.js).
 function autoCellValue(table, rows, exp, param, key) {
+  const juice = rowByParam(rows, "Juice (gr)")?.[key];
   if (table === "main") {
-    const juice = toNum(rowByParam(rows, "Juice (gr)")?.[key]);
-    const bagasse = toNum(rowByParam(rows, "Bagasse (gr)")?.[key]);
-    if (param === "Juice (%)") {
-      const caneG = caneKgForRepeat(exp, key) * 1000;
-      if (Number.isNaN(juice) || Number.isNaN(caneG) || caneG <= 0) return NaN;
-      return (juice / caneG) * 100;
-    }
-    if (param === "Juice (norm)") {
-      const total = juice + bagasse;
-      if (Number.isNaN(juice) || Number.isNaN(bagasse) || total <= 0) return NaN;
-      return (juice / total) * 100;
-    }
+    const caneG = caneKgForRepeat(exp, key) * 1000;
+    if (param === "Juice (%)") return extractionPct(juice, caneG);
+    if (param === "Juice (norm)") return normalizedPct(juice, caneG, rowByParam(rows, "°Bx")?.[key]);
     return NaN;
   }
-  if (param === "Juice (%)") {
-    const juice = toNum(rowByParam(rows, "Juice (gr)")?.[key]);
-    const bagasse = toNum(rowByParam(rows, "Bagasse (gr)")?.[key]);
-    const total = juice + bagasse;
-    if (Number.isNaN(juice) || Number.isNaN(bagasse) || total <= 0) return NaN;
-    return (juice / total) * 100;
-  }
+  if (param === "Juice (%)") return osmosisPct(juice, rowByParam(exp.rows || [], "Bagasse (gr)")?.[key]);
   return NaN;
 }
 
@@ -123,7 +126,7 @@ function effectiveRows(table, rows, exp) {
     const out = { ...row };
     ["r1", "r2", "r3"].forEach((key) => {
       const value = autoCellValue(table, rows, exp, row.param, key);
-      out[key] = !Number.isNaN(value) ? String(Math.round(value * 10000) / 10000) : row[key] ?? "";
+      out[key] = Number.isNaN(value) ? "" : String(Math.round(value * 10000) / 10000);
     });
     return out;
   });
@@ -382,7 +385,7 @@ function exercise2(meta, exp2) {
     const bg = auto ? AMBER : index % 2 === 0 ? STRIPE : "#FFFFFF";
     rows.push([
       dataCell(index + 1, { bg, format: "0" }),
-      cell(`${param}\n${viParam(param)}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 22, fontSize: 9, fontWeight: auto ? "bold" : undefined }),
+      cell(`${param}\n${viParam(param, "main")}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 22, fontSize: 9, fontWeight: auto ? "bold" : undefined }),
       dataCell(numOrNull(row.r1, 2), { bg, format: "0.00" }),
       dataCell(numOrNull(row.r2, 2), { bg, format: "0.00" }),
       dataCell(numOrNull(row.r3, 2), { bg, format: "0.00" }),
@@ -390,7 +393,7 @@ function exercise2(meta, exp2) {
       dataCell(numOrNull(stat.s, 2), { bg, format: "0.00" }),
     ]);
   });
-  rows.push(noteRow("* Juice (%) = Nước ép / (khối lượng mía đúng lần đó × 1000) × 100. Juice (norm) = Nước ép / (Nước ép + Bã) × 100. Mean và SD lấy theo các lần lặp có số liệu.", NC, 30));
+  rows.push(noteRow(`* Hiệu suất ép (%) = Nước ép / (khối lượng mía đúng lần đó × 1000) × 100. Tỉ lệ chuẩn hoá (%) = Hiệu suất ép × (°Bx đo / ${STANDARD_BRIX}) — hệ số hiệu chỉnh Brix của guide. Mean và SD lấy theo các lần lặp có số liệu.`, NC, 30));
   rows.push(blankRow(NC));
   rows.push(sectionRow("2.2 The brief comment (using descriptive statistics)", "Nhận xét ngắn (dùng thống kê mô tả)", NC));
   rows.push(commentRow(exp2.comment22, NC, 8));
@@ -409,7 +412,7 @@ function exercise2(meta, exp2) {
     const bg = auto ? AMBER : index % 2 === 0 ? STRIPE : "#FFFFFF";
     rows.push([
       dataCell(index + 1, { bg, format: "0" }),
-      cell(`${param}\n${viParam(param)}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 30, fontSize: 9, fontWeight: auto ? "bold" : undefined }),
+      cell(`${param}\n${viParam(param, "j1")}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 30, fontSize: 9, fontWeight: auto ? "bold" : undefined }),
       dataCell(numOrNull(row.r1, 2), { bg, format: "0.00" }),
       dataCell(numOrNull(row.r2, 2), { bg, format: "0.00" }),
       dataCell(numOrNull(row.r3, 2), { bg, format: "0.00" }),
@@ -417,76 +420,73 @@ function exercise2(meta, exp2) {
       dataCell(numOrNull(stat.s, 2), { bg, format: "0.00" }),
     ]);
   });
-  rows.push(noteRow("* Juice (%) = Juice 1 / (Juice 1 + Bã sau ép lại) × 100. Lượng nước ngâm gợi ý theo tỉ lệ 1 : 1 với khối lượng bã ở bảng 2.1.", NC, 30));
+  rows.push(noteRow("* Hiệu suất ép 2 (%) = Nước ép 2 / (Bã 1 + nước ngâm) × 100 = Nước ép 2 / (2 × Bã 1); lượng nước ngâm theo tỉ lệ 1 : 1 với khối lượng bã ở bảng 2.1.", NC, 30));
   rows.push(blankRow(NC));
   rows.push(sectionRow("2.5 Compare the Brix of juice 1 with table 1.1", "So sánh °Bx của juice 1 với Bảng 1.1", NC));
   rows.push(commentRow(exp2.compare25, NC, 8));
-  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu. Các dòng có nền vàng và dấu * được tính tự động theo quy ước của app.", NC));
+  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu. Các dòng có nền vàng và dấu * tính tự động theo công thức trong hướng dẫn thực hành.", NC));
   return sheet("Bài 2 - Ép nước mía", 2, "Experiment 2: Sugarcane juice extraction", "Ép và đánh giá nước mía", "", meta, [6, 34, 14, 14, 14, 13, 12], rows);
 }
 
 function exercise3(meta, exp3) {
   const NC = 6;
   const rows = titleRows(3, "Experiment 3: Clarification of sugarcane juice for syrup production", "Làm trong nước mía để nấu syrup", "The clarification process required to reduce particles in sugarcane juice before heating to produce syrup, in this work, analyze the turbidity, pH, °Bx to determine the clarification effect due to the clarifying agents.", meta, NC);
-  rows.push(sectionRow("3.1 Determine the clarification of sugarcane juice by using Ca(OH)2 20% (105oC/60 minutes) (0-10 marks in the turbidity) (2000g sugarcane juice from 2.1)", "Xác định hiệu quả làm trong nước mía bằng Ca(OH)₂ 20% (105 °C / 60 phút), chấm độ trong 0–10 (2000 g nước mía từ 2.1)", NC));
+  rows.push(sectionRow("3.1 Determine the clarification of sugarcane juice by using Ca(OH)2 20% (105oC/60 minutes) (0-10 marks in the turbidity) (2000g sugarcane juice from 2.1)", "Xác định hiệu quả làm trong nước mía bằng nước vôi trong Ca(OH)₂ theo liều 10/15/18% khối lượng nước mía (khuấy đều, để yên 45–60 phút), lọc qua vải, chấm độ trong 0–10", NC));
   rows.push([
-    cell("Lượng mẫu chuẩn theo phiếu:", { ...thinBorder, columnSpan: 2, bold: true, textColor: GREEN, align: "left", height: 22 }),
+    cell("Tổng khối lượng nước mía thô gộp từ bài 2:", { ...thinBorder, columnSpan: 2, bold: true, textColor: GREEN, align: "left", height: 22 }),
     null,
     dataCell(numOrNull(exp3.juiceGrams, 0), { format: "0", height: 22 }),
-    ...span("g nước mía (giá trị tham chiếu từ phiếu thực hành).", NC - 3, { ...thinBorder, fontStyle: "italic", fontSize: 9, textColor: NOTE, align: "left", height: 22 }),
+    ...span("g nước mía (cân thực tế khi gộp hết dịch ép lần 1 và lần 2).", NC - 3, { ...thinBorder, fontStyle: "italic", fontSize: 9, textColor: NOTE, align: "left", height: 22 }),
   ]);
-  const params = ["Juice (gr)", "Mud (gr)", "Mud (%)", "°Bx", "pH", "Turbidity"];
+  const params = ["Juice (gr)", "Mud (gr)", "Mud (%)", "Clear (gr)", "Clear (%)", "°Bx", "pH", "Turbidity"];
+  const label3 = { ...PARAM_VI, "Juice (gr)": "Nước mía (g)" };
   const raw = exp3.rows || [];
   const columns = [
-    ["control", "Control (0%)\nĐối chứng"],
-    ["g1", "Group 1 (5%)\nNhóm 1 – vôi 5%"],
-    ["g2", "Group 2 (10%)\nNhóm 2 – vôi 10%"],
-    ["g3", "Group 3 (15%)\nNhóm 3 – vôi 15%"],
+    ["control", `Control (${EXP3_DOSES.control}%)\nĐối chứng – vôi ${EXP3_DOSES.control}%`],
+    ["g1", `Group 1 (${EXP3_DOSES.g1}%)\nNhóm 1 – vôi ${EXP3_DOSES.g1}%`],
+    ["g2", `Group 2 (${EXP3_DOSES.g2}%)\nNhóm 2 – vôi ${EXP3_DOSES.g2}%`],
+    ["g3", `Group 3 (${EXP3_DOSES.g3}%)\nNhóm 3 – vôi ${EXP3_DOSES.g3}%`],
   ];
   rows.push([cell("No\nSTT", headerStyle), cell("Parameters\nChỉ tiêu", headerStyle), ...columns.map(([, label]) => cell(label, headerStyle))]);
+  const eff = exp3EffectiveRows(raw);
+  const effRow = (param) => eff.find((row) => row.param === param);
   params.forEach((param, index) => {
-    const auto = param === "Mud (%)";
+    const auto = EXP3_AUTO_PARAMS.includes(param);
     const bg = auto ? AMBER : index % 2 === 0 ? STRIPE : "#FFFFFF";
-    const values = columns.map(([key]) => {
-      if (param === "Mud (%)") {
-        const mud = toNum(rowByParam(raw, "Mud (gr)")?.[key]);
-        const juice = toNum(rowByParam(raw, "Juice (gr)")?.[key]);
-        if (Number.isNaN(mud) || Number.isNaN(juice) || juice <= 0) return null;
-        return Math.round((mud / juice) * 10000) / 100;
-      }
-      return numOrNull(rowByParam(raw, param)?.[key], 2);
-    });
-    const formats = { "Juice (gr)": "0.0", "Mud (gr)": "0.0", "Mud (%)": "0.00", "°Bx": "0.0", pH: "0.00" };
+    const values = columns.map(([key]) => (auto ? numOrNull(effRow(param)?.[key], 2) : numOrNull(rowByParam(raw, param)?.[key], 2)));
+    const formats = { "Juice (gr)": "0.0", "Mud (gr)": "0.0", "Mud (%)": "0.00", "Clear (gr)": "0.0", "Clear (%)": "0.00", "°Bx": "0.0", pH: "0.00" };
     rows.push([
       dataCell(index + 1, { bg, format: "0" }),
-      cell(`${param}\n${viParam(param)}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 32, fontSize: 9, fontWeight: auto || param === "Turbidity" ? "bold" : undefined }),
+      cell(`${param}\n${label3[param] || param}`, { ...thinBorder, backgroundColor: bg, align: "left", height: 32, fontSize: 9, fontWeight: auto || param === "Turbidity" ? "bold" : undefined }),
       ...values.map((value) => dataCell(value, { bg, format: formats[param] })),
     ]);
   });
-  rows.push(noteRow("* Mud (%) = Cặn bùn / Nước mía × 100. ** Độ trong 0–10 (10 = trong nhất) được bổ sung theo mô tả 3.1; phiếu in gốc chỉ có 5 dòng nhưng yêu cầu chấm độ đục.", NC, 30));
+  rows.push(noteRow("* Mud (%) = Cặn bùn / (Nước mía + lượng nước vôi của đúng cột) × 100, liều vôi 10/15/18% theo hướng dẫn. Clear (%) = Nước mía trong sau lọc / Nước mía thô × 100. ** Độ trong 0–10 (10 = trong nhất) được bổ sung theo mô tả 3.1; phiếu in gốc chỉ có 5 dòng nhưng yêu cầu chấm độ đục.", NC, 42));
   rows.push(blankRow(NC));
   rows.push(sectionRow("3.2 Using the data from other groups (for the repeat) and give the brief comment (using descriptive statistics)", "Dùng số liệu các nhóm khác làm lặp lại và nhận xét (dùng thống kê mô tả)", NC));
   rows.push(commentRow(exp3.comment32, NC, 10));
-  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu. Dòng Tỉ lệ bùn (%) được tính tự động từ Nước mía và Cặn bùn.", NC));
-  return sheet("Bài 3 - Làm trong", 3, "Experiment 3: Clarification of sugarcane juice for syrup production", "Làm trong nước mía để nấu syrup", "", meta, [6, 28, 22, 22, 22, 22], rows);
+  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu. Dòng Tỉ lệ bùn (%) và Hiệu suất dịch trong (%) tính tự động theo công thức trong hướng dẫn thực hành.", NC));
+  return sheet("Bài 3 - Làm trong", 3, "Experiment 3: Clarification of sugarcane juice for syrup production", "Làm trong nước mía để nấu syrup", "", meta, [6, 30, 22, 22, 22, 22], rows);
 }
 
 function exercise4(meta, exp4) {
   const NC = 7;
   const rows = titleRows(4, "Experiment 4: Concentration of the syrup", "Cô đặc syrup", "The concentration of the syrup (clear juice) that sugarcane juice obtains after the process of clarification operation is 15.0 ~ 17.0° of Bx, and water content is 83.0 ~ 85.0%. Boiling sugarcane juice, removes a large amount of moisture, is condensed into the syrup of 60.0 ~ 65.0 ° of Bx, then sends to and boil sugar.", meta, NC);
   rows.push(sectionRow("4.1 Degrees Brix and the weight of syrup during concentration (… g from 3.1)", "Độ Brix và khối lượng syrup trong quá trình cô đặc (… g từ 3.1)", NC));
+  const table = netWeightRows(exp4.rows, GROUPS4.map((group) => group.w), exp4.potW);
+  const coTui = (exp4.potW || []).some((w) => toNum(w) > 0);
+  const dauRow = table.find((row) => toNum(row.t) === 0) || table[0];
   rows.push([
     cell("Khối lượng syrup ban đầu (g):", { ...thinBorder, columnSpan: 2, bold: true, textColor: GREEN, align: "left", height: 22 }),
     null,
-    dataCell(numOrNull(exp4.initialGrams, 1), { format: "0.0", height: 22 }),
-    ...span("Khối lượng đầu chính là dòng thời gian 0 (chưa cô đặc).", NC - 3, { ...thinBorder, fontStyle: "italic", fontSize: 9, textColor: NOTE, align: "left", height: 22 }),
+    ...GROUPS4.map((group) => dataCell(numOrNull(dauRow?.[group.w], 1), { format: "0.0", height: 22 })),
+    ...span("Theo thứ tự Nhóm 1 · Nhóm 2 · Nhóm 3, lấy ở dòng thời gian 0 (chưa cô đặc).", NC - 5, { ...thinBorder, fontStyle: "italic", fontSize: 9, textColor: NOTE, align: "left", height: 22 }),
   ]);
   rows.push([
     cell("Time (minute)\nThời gian (phút)", { ...headerStyle, rowSpan: 2 }),
     ...GROUPS4.flatMap((group) => span(`${group.label}\n${group.label === "Nhóm 1" ? "Group 1" : group.label === "Nhóm 2" ? "Group 2" : "Group 3"}`, 2, headerStyle)),
   ]);
-  rows.push([null, ...GROUPS4.flatMap(() => [cell("°Bx", headerStyle), cell("Weight (g)\nKhối lượng (g)", headerStyle)])]);
-  const table = exp4.rows || [];
+  rows.push([null, ...GROUPS4.flatMap(() => [cell("°Bx", headerStyle), cell(coTui ? "Weight (g)\nKhối lượng dịch (đã trừ bì nồi)" : "Weight (g)\nKhối lượng (g)", headerStyle)])]);
   table.forEach((row, index) => {
     const bg = index % 2 === 0 ? STRIPE : "#FFFFFF";
     rows.push([
@@ -497,7 +497,7 @@ function exercise4(meta, exp4) {
       ]),
     ]);
   });
-  rows.push(noteRow("Mục tiêu: nước mía sau làm trong ~15–17 °Bx → cô đặc tới syrup 60–65 °Bx. Có thể thêm/bớt mốc thời gian tùy buổi làm.", NC, 24));
+  rows.push(noteRow(`Mục tiêu: nước mía sau làm trong ~15–17 °Bx → cô đặc tới syrup 60–65 °Bx. Có thể thêm/bớt mốc thời gian tùy buổi làm.${coTui ? " Khối lượng trong bảng là dịch thuần: m_dich_t = m_(nồi+dịch) − m_nồi (nồi rỗng nhập ở app); nước bay hơi W = m_0 − m_dich_t." : " Nước bay hơi W = m_0 − m_dich_t (khối lượng dòng đầu trừ dòng đang xét)."}`, NC, 24));
   rows.push(blankRow(NC));
   rows.push(sectionRow("4.2 Define the equations which express the correlation between time and °Bx / weight", "Xác định phương trình tương quan giữa thời gian và °Bx / khối lượng", NC));
   rows.push([
@@ -557,12 +557,29 @@ function exercise5(meta, exp5) {
   const NC = 6;
   const rows = titleRows(5, "Experiment 5: Crystallization of sugar", "Kết tinh đường", "Crystallization is the (natural or artificial) process of formation of solid crystals precipitating from a solution. The formation of the crystalline phase from supersaturated solutions can occur by either a spontaneous or a forced nucleation mechanism.", meta, NC);
   rows.push(sectionRow("5.1 Using syrup of 4.1, carry out the crystallization process and record", "Dùng syrup ở 4.1 tiến hành kết tinh và ghi chép quá trình", NC));
+  const seed = exp5.seedGrams === "" || exp5.seedGrams == null ? EXP5_SEED : exp5.seedGrams;
+  rows.push([
+    cell("Số liệu cân (g):", { ...thinBorder, columnSpan: 2, bold: true, textColor: GREEN, align: "left", height: 26 }),
+    null,
+    cell("Dịch bão hoà", headerStyle),
+    cell(`Mầm (g)\nđể trống = ${EXP5_SEED}`, headerStyle),
+    cell("Đường thu được", headerStyle),
+    cell("H kết tinh (%) *", headerStyle),
+  ]);
+  rows.push([
+    ...span("H (%) = đường thu được / (dịch bão hoà + mầm) × 100.", 2, { ...thinBorder, fontStyle: "italic", fontSize: 9, textColor: NOTE, align: "left", height: 24 }),
+    null,
+    dataCell(numOrNull(exp5.syrupGrams, 1), { format: "0.0" }),
+    dataCell(numOrNull(seed, 1), { format: "0.0" }),
+    dataCell(numOrNull(exp5.productGrams, 1), { format: "0.0" }),
+    dataCell(numOrNull(crystalPct(exp5.productGrams, exp5.syrupGrams, seed), 2), { format: "0.00", bg: AMBER, bold: true }),
+  ]);
   rows.push(noteRow("Ghi: khối lượng syrup đem nấu, nhiệt độ, thời gian, hiện tượng quá bão hòa / gieo mầm (tự phát hay cưỡng bức), thời gian xuất hiện tinh thể, thu hồi…", NC, 30));
   rows.push(commentRow(exp5.record51, NC, 10));
   rows.push(blankRow(NC));
   rows.push(sectionRow("5.2 The brief comment", "Nhận xét ngắn", NC));
   rows.push(commentRow(exp5.comment52, NC, 6));
-  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu.", NC));
+  rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu. Dòng nền vàng * tính tự động theo công thức trong hướng dẫn.", NC));
   return sheet("Bài 5 - Kết tinh", 5, "Experiment 5: Crystallization of sugar", "Kết tinh đường", "", meta, [18, 18, 18, 18, 18, 18], rows);
 }
 
@@ -615,6 +632,32 @@ function exercise6(meta, exp6) {
   rows.push(blankRow(NC));
   rows.push(sectionRow("6.5 Discuss the factors which act on the quality of product", "Các yếu tố ảnh hưởng chất lượng sản phẩm", NC));
   rows.push(commentRow(exp6.factors, NC, 6));
+  rows.push(blankRow(NC));
+  rows.push(sectionRow("6.6 Recovery of the candy products", "Hiệu suất thu hồi kẹo", NC));
+  rows.push([
+    cell("Sản phẩm", headerStyle),
+    cell("Tổng nguyên liệu (g)", headerStyle),
+    cell("Thành phẩm (g)", headerStyle),
+    cell("H kẹo (%) *", headerStyle),
+    ...span("Phối liệu chuẩn của hướng dẫn", 2, headerStyle),
+  ]);
+  [
+    { key: "gummy", label: "Kẹo dẻo gelatin", raw: EXP6_RAW.gummy, recipe: "50 nước trái cây/sữa + 15 gelatin + 90 đường + 35 nước + 7 chanh" },
+    { key: "nut", label: "Kẹo đậu phộng", raw: EXP6_RAW.nut, recipe: "50 đậu rang + 80 đường + 38 nước + 0,5 muối + 5 chanh" },
+  ].forEach((p, index) => {
+    const stored = exp6[`${p.key}Raw`];
+    const rawUsed = stored === "" || stored == null ? p.raw : stored;
+    const product = exp6[`${p.key}Product`];
+    const bg = index % 2 === 0 ? STRIPE : "#FFFFFF";
+    rows.push([
+      dataCell(p.label, { bg, bold: true, color: GREEN, align: "left" }),
+      dataCell(numOrNull(rawUsed, 1), { bg, format: "0.0" }),
+      dataCell(numOrNull(product, 1), { bg, format: "0.0" }),
+      dataCell(numOrNull(candyPct(product, rawUsed), 2), { bg, format: "0.00", bold: true }),
+      ...span(p.recipe, 2, { ...thinBorder, align: "left", fontSize: 9, textColor: NOTE, backgroundColor: bg }),
+    ]);
+  });
+  rows.push(noteRow("* H (%) = kẹo thành phẩm / tổng nguyên liệu đầu vào × 100. Để trống tổng nguyên liệu trong app = dùng khối lượng phối liệu chuẩn của hướng dẫn.", NC, 26));
   rows.push(sourceRow("Nguồn dữ liệu: báo cáo xuất từ app Sổ Thực Hành. Ký hiệu “—” = chưa có số liệu.", NC));
   return sheet("Bài 6 - Sản phẩm", 6, "Experiment 6: Processing the product from sugar", "Chế biến sản phẩm từ đường", "", meta, [16, 20, 20, 20, 20, 20], rows);
 }

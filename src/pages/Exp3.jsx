@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { useReport } from "../store/ReportContext";
 import { fmt, toNum } from "../lib/stats";
+import { EXP3_AUTO_PARAMS, EXP3_DOSES, exp3AutoValue, exp3EffectiveRows, limeGrams } from "../lib/formulas";
 import { AutoTag, BigText, DescBlock, NumInput, SectionCard } from "../components/ui";
 
 // ---------------------------------------------------------------------------
 // Việt hóa (giữ key tiếng Anh trong store để không mất số liệu cũ).
+// Số liều vôi, công thức bùn % và dòng dịch sau lọc theo hướng dẫn thực hành;
+// công thức tính nằm ở src/lib/formulas.js (trang này và bảng Excel dùng chung).
 // Phiếu ghi "(0–10 marks in the turbidity)" nhưng bảng in thiếu hàng này,
 // app bổ sung hàng "Turbidity" để có cơ sở chấm và so sánh.
 // Quy ước: 10 = trong nhất (tốt nhất), 0 = đục nhất.
@@ -13,32 +16,47 @@ const PARAM_VI = {
   "Juice (gr)": "Nước mía (g)",
   "Mud (gr)": "Cặn bùn (g)",
   "Mud (%)": "Tỉ lệ bùn (%)",
+  "Clear (gr)": "Nước mía trong sau lọc (g)",
+  "Clear (%)": "Hiệu suất dịch trong (%)",
   "°Bx": "Độ Brix (°Bx)",
   "pH": "pH",
   "Turbidity": "Độ trong (0–10)",
 };
 
-const PARAMS3 = ["Juice (gr)", "Mud (gr)", "Mud (%)", "°Bx", "pH", "Turbidity"];
-const AUTO3 = ["Mud (%)"];
+const PARAMS3 = ["Juice (gr)", "Mud (gr)", "Mud (%)", "Clear (gr)", "Clear (%)", "°Bx", "pH", "Turbidity"];
+const AUTO3 = EXP3_AUTO_PARAMS;
+const AUTO_HINT = {
+  "Mud (%)": "Bùn / (Nước mía + nước vôi) × 100",
+  "Clear (%)": "Nước mía trong sau lọc / Nước mía × 100",
+};
 
 const COLS = [
-  { key: "control", label: "Đối chứng (0% vôi)", short: "ĐC", dose: "0%" },
-  { key: "g1", label: "Nhóm 1 (vôi 5%)", short: "5%", dose: "5%" },
-  { key: "g2", label: "Nhóm 2 (vôi 10%)", short: "10%", dose: "10%" },
-  { key: "g3", label: "Nhóm 3 (vôi 15%)", short: "15%", dose: "15%" },
+  {
+    key: "control",
+    label: `Đối chứng (${EXP3_DOSES.control}% vôi)`,
+    short: "ĐC",
+    dose: `${EXP3_DOSES.control}%`,
+  },
+  ...["g1", "g2", "g3"].map((key, i) => ({
+    key,
+    label: `Nhóm ${i + 1} (vôi ${EXP3_DOSES[key]}%)`,
+    short: `${EXP3_DOSES[key]}%`,
+    dose: `${EXP3_DOSES[key]}%`,
+  })),
 ];
 
 const TITLE_VI = "Thí nghiệm 3: Làm trong nước mía để nấu syrup";
 const INTRO_VI =
   "Làm trong là khâu loại tạp chất lơ lửng khỏi nước mía trước khi cô đặc thành syrup. " +
-  "Thí nghiệm dùng nước vôi Ca(OH)₂ 20% ở các liều 0/5/10/15% (so với nước mía), gia nhiệt 105 °C trong 60 phút, " +
-  "rồi so sánh lượng bùn, °Bx, pH và độ trong để chọn liều vôi phù hợp.";
+  "Gộp toàn bộ nước mía từ bài 2, cân tổng khối lượng rồi bổ sung nước vôi trong Ca(OH)₂ theo liều 10/15/18% (so với khối lượng nước mía) " +
+  "cho 3 nhóm, khuấy đều và để yên 45–60 phút cho trung hòa acid, kết tủa và lắng tạp chất. " +
+  "Lọc qua vải lọc rồi so sánh lượng bùn, dịch trong thu được, °Bx, pH và độ trong để chọn liều vôi phù hợp.";
 
 const viParam = (en) => PARAM_VI[en] || en;
 const viCol = (key) => COLS.find((c) => c.key === key)?.label || key;
 
-// Gộp hàng lưu cũ với danh mục chuẩn (báo cáo cũ chưa có hàng Độ trong
-// vẫn mở được; hàng mới hiện ô trống để nhập thêm).
+// Gộp hàng lưu cũ với danh mục chuẩn (báo cáo cũ chưa có hàng Độ trong hay
+// dịch sau lọc vẫn mở được; hàng mới hiện ô trống để nhập thêm).
 function mergedRows(stored) {
   const s = stored || [];
   return PARAMS3.map((p) => {
@@ -52,33 +70,14 @@ function rowByParam(rows, param) {
   return rows.find((x) => x.param === param);
 }
 
-// Bùn (%) = Bùn (g) / Nước mía (g) của đúng cột đó × 100 → TỰ TÍNH.
-// Vì 3 nhóm dùng lượng nước mía khác nhau nên bắt buộc so bằng tỉ lệ %,
-// không so gam tuyệt đối.
-function autoMudPct(rows, col) {
-  const mud = toNum(rowByParam(rows, "Mud (gr)")?.[col]);
-  const juice = toNum(rowByParam(rows, "Juice (gr)")?.[col]);
-  if (Number.isNaN(mud) || Number.isNaN(juice) || juice <= 0) return NaN;
-  return (mud / juice) * 100;
-}
-
-function autoReason(rows, col) {
+// Lý do còn thiếu, hiển thị ngay trong ô tự tính (tính ở src/lib/formulas.js:
+// Bùn % = bùn / (nước mía + vôi), Dịch trong % = dịch sau lọc / nước mía thô).
+function autoReason(rows, col, param) {
   if (Number.isNaN(toNum(rowByParam(rows, "Juice (gr)")?.[col]))) return "cần cân Nước mía (g)";
-  if (Number.isNaN(toNum(rowByParam(rows, "Mud (gr)")?.[col]))) return "cần cân Cặn bùn (g)";
+  if (param === "Mud (%)" && Number.isNaN(toNum(rowByParam(rows, "Mud (gr)")?.[col]))) return "cần cân Cặn bùn (g)";
+  if (param === "Clear (%)" && Number.isNaN(toNum(rowByParam(rows, "Clear (gr)")?.[col])))
+    return "cần cân Nước mía trong sau lọc (g)";
   return "";
-}
-
-// Hàng hiệu dụng: ô tự tính được thì dùng số auto, thiếu thì giữ số tay cũ.
-function effectiveRows3(rows) {
-  return (rows || []).map((r) => {
-    if (!AUTO3.includes(r.param)) return r;
-    const out = { ...r };
-    COLS.forEach(({ key }) => {
-      const a = autoMudPct(rows, key);
-      out[key] = !Number.isNaN(a) ? String(Math.round(a * 10000) / 10000) : r[key] ?? "";
-    });
-    return out;
-  });
 }
 
 function colData(rows, col) {
@@ -87,6 +86,8 @@ function colData(rows, col) {
     juice: toNum(rowByParam(rows, "Juice (gr)")?.[col]),
     mud: toNum(rowByParam(rows, "Mud (gr)")?.[col]),
     mudPct: toNum(rowByParam(rows, "Mud (%)")?.[col]),
+    clearG: toNum(rowByParam(rows, "Clear (gr)")?.[col]),
+    clearPct: toNum(rowByParam(rows, "Clear (%)")?.[col]),
     bx: toNum(rowByParam(rows, "°Bx")?.[col]),
     ph: toNum(rowByParam(rows, "pH")?.[col]),
     turb: toNum(rowByParam(rows, "Turbidity")?.[col]),
@@ -97,11 +98,13 @@ function colData(rows, col) {
 // Nhận xét tự động 3.2: so sánh 4 nghiệm thức theo liều vôi
 // ---------------------------------------------------------------------------
 function sinhNhanXet32(exp) {
-  const rows = effectiveRows3(mergedRows(exp.rows));
+  const rows = exp3EffectiveRows(mergedRows(exp.rows));
   const ds = COLS.map(({ key }) => colData(rows, key));
-  const coLieu = ds.some((d) => [d.juice, d.mud, d.mudPct, d.bx, d.ph, d.turb].some((n) => !Number.isNaN(n)));
+  const coLieu = ds.some((d) =>
+    [d.juice, d.mud, d.mudPct, d.clearG, d.clearPct, d.bx, d.ph, d.turb].some((n) => !Number.isNaN(n))
+  );
   if (!coLieu)
-    return "Chưa nhập số liệu bảng 3.1 nên chưa thể nhận xét tự động. Hãy cân Nước mía/Cặn bùn từng cột, đo °Bx/pH và chấm Độ trong (0–10, 10 = trong nhất) — Tỉ lệ bùn (%) app đã tự tính.";
+    return "Chưa nhập số liệu bảng 3.1 nên chưa thể nhận xét tự động. Hãy cân Nước mía/Cặn bùn/Nước mía trong sau lọc từng cột, đo °Bx/pH và chấm Độ trong (0–10, 10 = trong nhất) — Tỉ lệ bùn (%) và Hiệu suất dịch trong (%) app đã tự tính.";
 
   const out = [];
   const ctrl = ds[0];
@@ -111,11 +114,10 @@ function sinhNhanXet32(exp) {
   const juices = ds.map((d) => d.juice).filter((n) => !Number.isNaN(n));
   if (juices.length >= 2) {
     const khac = Math.max(...juices) - Math.min(...juices) > 1;
-    const LIEU_TXT = { control: 0, g1: 0.05, g2: 0.1, g3: 0.15 };
-    let c = `Lượng nước mía mỗi cột: ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.juice) ? "—" : `${fmt(d.juice, 1)} g`}`).join("; ")}. `;
-    c += `Lượng nước vôi 20% đã thêm (liều × đúng cột đó): ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.juice) ? "—" : `${fmt(d.juice * LIEU_TXT[d.col], 1)} g`}`).join("; ")}. `;
+    let c = `Tổng khối lượng nước mía mỗi cột: ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.juice) ? "—" : `${fmt(d.juice, 1)} g`}`).join("; ")}. `;
+    c += `Lượng nước vôi đã thêm (liều % × nước mía đúng cột đó): ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.juice) ? "—" : `${fmt(limeGrams(d.juice, EXP3_DOSES[d.col]), 1)} g`}`).join("; ")}. `;
     c += khac
-      ? "Các cột không cùng khối lượng mẫu nên mọi so sánh dưới đây dùng tỉ lệ % và chỉ số đo (Bùn %, °Bx, pH, điểm độ trong), không so gam tuyệt đối."
+      ? "Các cột không cùng khối lượng mẫu nên mọi so sánh dưới đây dùng tỉ lệ % và chỉ số đo (Bùn %, Dịch trong %, °Bx, pH, điểm độ trong), không so gam tuyệt đối."
       : "Các cột cùng khối lượng mẫu nên so sánh trực tiếp được.";
     out.push("• " + c);
   }
@@ -124,7 +126,7 @@ function sinhNhanXet32(exp) {
   const coBun = ds.filter((d) => !Number.isNaN(d.mudPct));
   if (coBun.length) {
     const sap = [...coBun].sort((a, b) => b.mudPct - a.mudPct);
-    let c = `Tỉ lệ bùn (tự tính = Bùn / Nước mía × 100): ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.mudPct) ? "—" : `${fmt(d.mudPct)}%`}`).join("; ")}. `;
+    let c = `Tỉ lệ bùn (tự tính = Bùn / (Nước mía + nước vôi) × 100): ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.mudPct) ? "—" : `${fmt(d.mudPct)}%`}`).join("; ")}. `;
     c += `Cao nhất ở ${viCol(sap[0].col)} (${fmt(sap[0].mudPct)}%), thấp nhất ở ${viCol(sap[sap.length - 1].col)} (${fmt(sap[sap.length - 1].mudPct)}%). `;
     c += "Bùn nhiều nghĩa là vôi đã kết tủa được nhiều tạp chất (phosphat, protein, chất keo, sáp) — nhưng phải đọc cùng điểm độ trong: bùn nhiều mà nước vẫn đục là kết bông kém, lắng chưa hết.";
     out.push("• " + c);
@@ -132,7 +134,21 @@ function sinhNhanXet32(exp) {
     out.push("• Tỉ lệ bùn: chưa tính được (thiếu cân Nước mía hoặc Cặn bùn) — nhập 2 số này, app sẽ tự tính.");
   }
 
-  // 3. Độ trong → liều tốt nhất
+  // 3. Hiệu suất dịch trong sau lọc
+  const coDich = ds.filter((d) => !Number.isNaN(d.clearPct));
+  if (coDich.length) {
+    const sap = [...coDich].sort((a, b) => b.clearPct - a.clearPct);
+    let c = `Hiệu suất dịch trong sau lọc (tự tính = Nước mía trong sau lọc / Nước mía thô × 100): ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.clearPct) ? "—" : `${fmt(d.clearPct)}%`}`).join("; ")}. `;
+    c += `Cao nhất ở ${viCol(sap[0].col)} (${fmt(sap[0].clearPct)}%). `;
+    c += sap[0].clearPct >= 100
+      ? "Thu trên 100% là vô lý (dịch sau lọc không thể nhiều hơn nước mía thô, vì bùn đã bị giữ lại) — kiểm tra lại cách cân dịch."
+      : "Phần hao hụt là bùn bị giữ lại cùng dịch dính vải lọc; hao càng ít và độ trong càng cao thì quy trình lọc càng tốt.";
+    out.push("• " + c);
+  } else {
+    out.push("• Hiệu suất dịch trong: chưa tính được — cân Nước mía trong sau lọc (g) từng cột (m_bun = vải dính bùn − vải khô, dịch trong là phần chảy qua vải).");
+  }
+
+  // 4. Độ trong → liều tốt nhất
   const coDuc = ds.filter((d) => !Number.isNaN(d.turb));
   let totNhat = null;
   if (coDuc.length) {
@@ -142,13 +158,13 @@ function sinhNhanXet32(exp) {
     c += `Trong nhất là ${viCol(totNhat.col)} (${fmt(totNhat.turb, 1)} điểm). `;
     if (sap.length > 1 && sap[0].turb === sap[1].turb)
       c += `Có đồng hạng (${viCol(sap[1].col)} cùng ${fmt(sap[1].turb, 1)} điểm) — khi đó ưu tiên liều vôi thấp hơn để tiết kiệm hóa chất và hạn chế kiềm dư. `;
-    else if (totNhat.col === "control") c += "Đối chứng trong nhất là bất thường — kiểm tra lại liều vôi, nhiệt độ/thời gian gia nhiệt và cách chấm.";
+    else if (totNhat.col === "control") c += "Đối chứng trong nhất là bất thường — kiểm tra lại liều vôi, thời gian lắng 45–60 phút và cách chấm.";
     out.push("• " + c);
   } else {
     out.push("• Độ trong: chưa chấm điểm (thang 0–10, 10 = trong nhất) — đây là tiêu chí chính để chọn liều vôi.");
   }
 
-  // 4. pH theo liều
+  // 5. pH theo liều
   const coPH = ds.filter((d) => !Number.isNaN(d.ph));
   if (coPH.length) {
     let c = `pH: ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.ph) ? "—" : fmt(d.ph)}`).join("; ")}. `;
@@ -161,7 +177,7 @@ function sinhNhanXet32(exp) {
     out.push("• " + c);
   }
 
-  // 5. °Bx (tổn thất đường)
+  // 6. °Bx (tổn thất đường)
   const coBx = ds.filter((d) => !Number.isNaN(d.bx));
   if (coBx.length) {
     let c = `Độ Brix: ${ds.map((d) => `${viCol(d.col)} ${Number.isNaN(d.bx) ? "—" : `${fmt(d.bx)} °Bx`}`).join("; ")}. `;
@@ -177,7 +193,7 @@ function sinhNhanXet32(exp) {
     out.push("• " + c);
   }
 
-  // 6. Kết luận liều
+  // 7. Kết luận liều
   if (totNhat && totNhat.col !== "control") {
     const d = colData(rows, totNhat.col);
     let c = `Kết luận sơ bộ: liều ${COLS.find((x) => x.key === totNhat.col)?.dose} cho nước trong nhất. `;
@@ -223,13 +239,15 @@ function HopNhanXetTuDong({ text, onApply, applied }) {
 
 // Dải so sánh nhanh 4 nghiệm thức (bàn: bảng; mobile: thẻ dọc)
 function SoSanhNhanh({ rows, mobile }) {
-  const eff = effectiveRows3(rows);
+  const eff = exp3EffectiveRows(rows);
   const ds = COLS.map(({ key }) => colData(eff, key));
   const best = ds.filter((d) => !Number.isNaN(d.turb)).sort((a, b) => b.turb - a.turb)[0];
   const hang = [
     { label: "Nước mía (g)", get: (d) => (Number.isNaN(d.juice) ? "—" : fmt(d.juice, 1)) },
     { label: "Cặn bùn (g)", get: (d) => (Number.isNaN(d.mud) ? "—" : fmt(d.mud, 1)) },
     { label: "Tỉ lệ bùn (%)", get: (d) => (Number.isNaN(d.mudPct) ? "—" : `${fmt(d.mudPct)}%`), auto: true },
+    { label: "Nước mía trong sau lọc (g)", get: (d) => (Number.isNaN(d.clearG) ? "—" : fmt(d.clearG, 1)) },
+    { label: "Hiệu suất dịch trong (%)", get: (d) => (Number.isNaN(d.clearPct) ? "—" : `${fmt(d.clearPct)}%`), auto: true },
     { label: "Độ Brix (°Bx)", get: (d) => (Number.isNaN(d.bx) ? "—" : fmt(d.bx)) },
     { label: "pH", get: (d) => (Number.isNaN(d.ph) ? "—" : fmt(d.ph)) },
     { label: "Độ trong (0–10)", get: (d) => (Number.isNaN(d.turb) ? "—" : fmt(d.turb, 1)) },
@@ -242,7 +260,8 @@ function SoSanhNhanh({ rows, mobile }) {
             <b>{viCol(d.col)}</b>
             {best && d.col === best.col && <span className="best-badge"> trong nhất</span>} ·{" "}
             <span className="v">
-              Bùn {Number.isNaN(d.mudPct) ? "—" : `${fmt(d.mudPct)}%`} · pH {Number.isNaN(d.ph) ? "—" : fmt(d.ph)} · °Bx{" "}
+              Bùn {Number.isNaN(d.mudPct) ? "—" : `${fmt(d.mudPct)}%`} · Dịch thu{" "}
+              {Number.isNaN(d.clearPct) ? "—" : `${fmt(d.clearPct)}%`} · pH {Number.isNaN(d.ph) ? "—" : fmt(d.ph)} · °Bx{" "}
               {Number.isNaN(d.bx) ? "—" : fmt(d.bx)} · Đục {Number.isNaN(d.turb) ? "—" : fmt(d.turb, 1)}
             </span>
           </div>
@@ -287,17 +306,11 @@ export default function Exp3({ mode }) {
   const rows = useMemo(() => mergedRows(exp.rows), [exp.rows]);
   const auto32 = useMemo(() => sinhNhanXet32(exp), [exp]);
 
-  // Lượng nước vôi 20% cần thêm cho từng cột = liều % × Nước mía của đúng
-  // cột đó (w/w). Vì các nhóm cân nước mía khác nhau nên mỗi cột đong riêng
+  // Lượng nước vôi cần thêm cho từng cột = liều % × nước mía của đúng cột đó
+  // (w/w). Vì các nhóm có khối lượng nước mía khác nhau nên mỗi cột đong riêng
   // — không dùng chung một số.
-  const LIEU = { control: 0, g1: 0.05, g2: 0.1, g3: 0.15 };
   const nuocVoi = useMemo(
-    () =>
-      COLS.map(({ key }) => {
-        const j = toNum(rowByParam(rows, "Juice (gr)")?.[key]);
-        if (Number.isNaN(j) || j <= 0) return NaN;
-        return j * (LIEU[key] ?? 0);
-      }),
+    () => COLS.map(({ key }) => limeGrams(rowByParam(rows, "Juice (gr)")?.[key], EXP3_DOSES[key])),
     [rows]
   );
   const coNuocVoi = nuocVoi.some((n) => !Number.isNaN(n) && n > 0);
@@ -315,11 +328,11 @@ export default function Exp3({ mode }) {
       <DescBlock text={INTRO_VI} />
 
       <SectionCard
-        title="3.1 — Làm trong bằng nước vôi Ca(OH)₂ 20% (105 °C / 60 phút), chấm độ trong 0–10"
-        hint="Mỗi cột là một liều vôi, lượng nước mía không bắt buộc bằng nhau — cứ cân thực tế từng cột, app tự tính Tỉ lệ bùn (%) nên không cần nhập tay. Chấm Độ trong 0–10 (10 = trong nhất)."
+        title="3.1 — Làm trong bằng nước vôi trong Ca(OH)₂ (khuấy đều, để yên 45–60 phút), lọc qua vải, chấm độ trong 0–10"
+        hint="Mỗi cột là một liều vôi, lượng nước mía không bắt buộc bằng nhau — cứ cân thực tế từng cột, app tự tính Tỉ lệ bùn (%) và Hiệu suất dịch trong (%). Cân vải lọc khô trước khi lọc, vải dính bùn sau khi lọc để tách khối lượng bùn. Chấm Độ trong 0–10 (10 = trong nhất)."
       >
         <label className="inline-field">
-          Lượng mẫu chuẩn theo phiếu (g):
+          Tổng khối lượng nước mía thô gộp từ bài 2 (g):
           <input
             className="num-input w120" inputMode="decimal" type="number" step="any"
             value={exp.juiceGrams} onChange={(e) => update(["exp3", "juiceGrams"], e.target.value)}
@@ -329,8 +342,8 @@ export default function Exp3({ mode }) {
         {coNuocVoi ? (
           <div className="auto-box">
             <div className="auto-box-head">
-              <b>🧪 Lượng nước vôi 20% cần thêm (liều % × nước mía đúng cột đó)</b>
-              <span className="hint tiny">Các nhóm cân nước mía khác nhau nên mỗi cột đong riêng — tính theo khối lượng (w/w); nếu GV quy định theo thể tích thì đổi tương ứng.</span>
+              <b>🧪 Lượng nước vôi cần thêm (liều % × nước mía đúng cột đó)</b>
+              <span className="hint tiny">Các nhóm có khối lượng nước mía khác nhau nên mỗi cột đong riêng — tính theo khối lượng (w/w) theo hướng dẫn: Nhóm 1 {EXP3_DOSES.g1}%, Nhóm 2 {EXP3_DOSES.g2}%, Nhóm 3 {EXP3_DOSES.g3}%.</span>
             </div>
             <div className="m-grid4">
               {COLS.map((c, i) => (
@@ -342,7 +355,7 @@ export default function Exp3({ mode }) {
             </div>
           </div>
         ) : (
-          <p className="hint">Nhập cân Nước mía (g) từng cột, app sẽ tính sẵn lượng nước vôi 20% cần thêm theo liều 5/10/15%.</p>
+          <p className="hint">Nhập cân Nước mía (g) từng cột, app sẽ tính sẵn lượng nước vôi cần thêm theo liều 10/15/18%.</p>
         )}
         {!mobile ? (
           <div className="table-wrap">
@@ -361,13 +374,13 @@ export default function Exp3({ mode }) {
                       <td>{PARAMS3.indexOf(r.param) + 1}</td>
                       <td className="param">
                         {viParam(r.param)}
-                        {auto && <span className="hint tiny" style={{ display: "block", fontWeight: 400 }}>Bùn / Nước mía × 100</span>}
+                        {auto && <span className="hint tiny" style={{ display: "block", fontWeight: 400 }}>{AUTO_HINT[r.param]}</span>}
                         {r.param === "Turbidity" && <span className="hint tiny" style={{ display: "block", fontWeight: 400 }}>10 = trong nhất</span>}
                       </td>
                       {COLS.map((c) => (
                         <td key={c.key} className={auto ? "auto" : ""}>
                           {auto ? (
-                            <OTuTinh value={autoMudPct(rows, c.key)} reason={autoReason(rows, c.key)} />
+                            <OTuTinh value={exp3AutoValue(rows, c.key, r.param)} reason={autoReason(rows, c.key, r.param)} />
                           ) : (
                             <NumInput value={r[c.key]} ariaLabel={`${viParam(r.param)} ${c.label}`} onChange={(v) => setCellByParam(r.param, c.key, v)} />
                           )}
@@ -388,14 +401,14 @@ export default function Exp3({ mode }) {
                   <div className="m-card-head">
                     <b>{viParam(r.param)} {auto && <AutoTag>tự tính</AutoTag>}</b>
                     {r.param === "Turbidity" && <span className="hint">10 = trong nhất</span>}
-                    {auto && <span className="hint">Bùn / Nước mía × 100</span>}
+                    {auto && <span className="hint">{AUTO_HINT[r.param]}</span>}
                   </div>
                   <div className="m-grid4">
                     {COLS.map((c) => (
                       <div key={c.key} className={auto ? "m-auto" : ""}>
                         <span className="hint tiny">{c.short}</span>
                         {auto ? (
-                          <OTuTinh value={autoMudPct(rows, c.key)} reason={autoReason(rows, c.key)} />
+                          <OTuTinh value={exp3AutoValue(rows, c.key, r.param)} reason={autoReason(rows, c.key, r.param)} />
                         ) : (
                           <NumInput value={r[c.key]} ariaLabel={`${viParam(r.param)} ${c.label}`} onChange={(v) => setCellByParam(r.param, c.key, v)} />
                         )}
@@ -420,7 +433,7 @@ export default function Exp3({ mode }) {
 
       <SectionCard
         title="3.2 — Nhận xét (dùng số liệu các nhóm khác làm lặp lại + thống kê mô tả)"
-        hint="App so sánh sẵn 4 liều vôi theo Bùn %, pH, °Bx và Độ trong. Muốn chặt chẽ, xin số liệu các nhóm khác làm lặp lại rồi tính trung bình ± SD cho từng liều."
+        hint="App so sánh sẵn 4 liều vôi theo Bùn %, Dịch trong %, pH, °Bx và Độ trong. Muốn chặt chẽ, xin số liệu các nhóm khác làm lặp lại rồi tính trung bình ± SD cho từng liều."
       >
         <HopNhanXetTuDong
           text={auto32}
@@ -429,7 +442,7 @@ export default function Exp3({ mode }) {
         />
         <BigText rows={8} value={exp.comment32}
           onChange={(v) => update(["exp3", "comment32"], v)}
-          placeholder="VD: Liều 10% trong nhất (… điểm), Bùn …%, pH … (tăng theo liều), °Bx hao …% so với đối chứng… + trung bình ± SD khi đã gộp số liệu các nhóm khác…" />
+          placeholder="VD: Liều 15% trong nhất (… điểm), Bùn …%, dịch trong thu hồi …%, pH … (tăng theo liều), °Bx hao …% so với đối chứng… + trung bình ± SD khi đã gộp số liệu các nhóm khác…" />
       </SectionCard>
     </div>
   );

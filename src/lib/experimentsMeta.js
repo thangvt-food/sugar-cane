@@ -95,27 +95,3 @@ export const EXPERIMENTS = [
 ];
 
 export const EXP1_CONC = [5, 10, 15, 20, 25, 30, 40, 50, 60];
-
-export const EXP2_PARAMS = [
-  "Juice (gr)",
-  "Bagasse (gr)",
-  "Juice (%)",
-  "Juice (norm)",
-  "°Bx",
-  "pH",
-  "Colour",
-  "Flavour",
-  "Taste",
-  "Clarity",
-  "State",
-];
-
-export const EXP2_J1_PARAMS = ["Juice (gr)", "Bagasse (gr)", "Juice (%)", "°Bx", "pH"];
-
-export const EXP3_PARAMS = ["Juice (gr)", "Mud (gr)", "Mud (%)", "°Bx", "pH"];
-export const EXP3_COLS = [
-  { key: "control", label: "Control (0%)" },
-  { key: "g1", label: "Lime-water / juice (group 1: 5%)" },
-  { key: "g2", label: "Lime-water / juice (group 2: 10%)" },
-  { key: "g3", label: "Lime-water / juice (group 3: 15%)" },
-];

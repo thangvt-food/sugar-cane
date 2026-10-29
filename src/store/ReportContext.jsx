@@ -27,10 +27,11 @@ export const defaultReport = () => ({
   },
   exp3: {
     juiceGrams: "2000",
-    rows: ["Juice (gr)", "Mud (gr)", "Mud (%)", "°Bx", "pH"].map((p) => ({ param: p, control: "", g1: "", g2: "", g3: "" })),
+    rows: ["Juice (gr)", "Mud (gr)", "Mud (%)", "Clear (gr)", "Clear (%)", "°Bx", "pH"].map((p) => ({ param: p, control: "", g1: "", g2: "", g3: "" })),
     comment32: "",
   },
   exp4: {
+    potW: ["", "", ""],
     rows: [0, 15, 30, 45, 60, 90].map((t) => ({ t, g1bx: "", g1w: "", g2bx: "", g2w: "", g3bx: "", g3w: "" })),
     eq1: "",
     eq2: "",
@@ -39,8 +40,8 @@ export const defaultReport = () => ({
     comment45: "",
     comment47: "",
   },
-  exp5: { record51: "", comment52: "" },
-  exp6: { name: "", desc: "", process: "", adv: "", disadv: "", factors: "" },
+  exp5: { record51: "", comment52: "", syrupGrams: "", seedGrams: "10", productGrams: "" },
+  exp6: { name: "", desc: "", process: "", adv: "", disadv: "", factors: "", gummyRaw: "", gummyProduct: "", nutRaw: "", nutProduct: "" },
 });
 
 function setPath(obj, path, value) {

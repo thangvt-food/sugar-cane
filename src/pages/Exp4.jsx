@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useReport } from "../store/ReportContext";
 import { EXPERIMENTS } from "../lib/experimentsMeta";
 import { eqText, fmt, linReg, mean, sd, toNum } from "../lib/stats";
+import { netWeightRows } from "../lib/formulas";
 import { BigText, DescBlock, NumInput, RegLine, SectionCard } from "../components/ui";
 import { Exp4Chart } from "../components/charts";
 
@@ -11,6 +12,17 @@ const GROUPS = [
   { bx: "g2bx", w: "g2w", label: "Nhóm 2" },
   { bx: "g3bx", w: "g3w", label: "Nhóm 3" },
 ];
+
+// ---------------------------------------------------------------------------
+// Guide: m_dich_t = m_(nồi+dịch) − m_nồi. Nhập khối lượng nồi rỗng của nhóm nào
+// thì cột "Khối lượng (g)" của nhóm đó được hiểu là cân cả nồi; để trống thì giữ
+// cách nhập khối lượng dịch thuần như trước.
+// ---------------------------------------------------------------------------
+const WEIGHT_KEYS = GROUPS.map((g) => g.w);
+
+function netRows(exp) {
+  return netWeightRows(exp.rows, WEIGHT_KEYS, exp.potW);
+}
 
 // ---------------------------------------------------------------------------
 // Điểm (t, giá trị) hợp lệ, sắp theo thời gian
@@ -76,7 +88,7 @@ function danhGiaR2(r2) {
 // 4.3 — Nhận xét thống kê suy luận (hồi quy + so sánh 3 nhóm + bảo toàn chất khô)
 // ---------------------------------------------------------------------------
 function sinhNhanXet43(exp) {
-  const infos = GROUPS.map((g) => groupInfo(exp.rows, g));
+  const infos = GROUPS.map((g) => groupInfo(netRows(exp), g));
   const coLieu = infos.some((i) => i.nBx >= 2 || i.nW >= 2);
   if (!coLieu)
     return "Chưa đủ số liệu bảng 4.1 (mỗi nhóm cần ít nhất 2 mốc thời gian có °Bx và khối lượng) nên chưa thể nhận xét suy luận. Hãy nhập thêm các mốc thời gian — phương trình hồi quy và R² ở trên sẽ tự tính.";
@@ -133,7 +145,7 @@ function sinhNhanXet43(exp) {
 // 4.5 — Nhận xét đồ thị time – °Bx
 // ---------------------------------------------------------------------------
 function sinhNhanXet45(exp) {
-  const infos = GROUPS.map((g) => groupInfo(exp.rows, g)).filter((i) => i.nBx >= 1);
+  const infos = GROUPS.map((g) => groupInfo(netRows(exp), g)).filter((i) => i.nBx >= 1);
   if (!infos.length) return "Chưa có số liệu °Bx theo thời gian nên chưa thể nhận xét đồ thị. Hãy nhập °Bx các mốc thời gian ở bảng 4.1.";
 
   const out = [];
@@ -153,7 +165,7 @@ function sinhNhanXet45(exp) {
 // 4.7 — Nhận xét đồ thị time – weight
 // ---------------------------------------------------------------------------
 function sinhNhanXet47(exp) {
-  const infos = GROUPS.map((g) => groupInfo(exp.rows, g)).filter((i) => i.nW >= 1);
+  const infos = GROUPS.map((g) => groupInfo(netRows(exp), g)).filter((i) => i.nW >= 1);
   if (!infos.length) return "Chưa có số liệu khối lượng theo thời gian nên chưa thể nhận xét đồ thị. Hãy nhập khối lượng các mốc thời gian ở bảng 4.1.";
 
   const out = [];
@@ -191,9 +203,19 @@ export default function Exp4({ mode }) {
   const mobile = mode === "mobile";
   const setCell = (i, k, v) => update(["exp4", "rows", i, k], v);
 
-  const ts = exp.rows.map((r) => r.t);
-  const regBx = GROUPS.map((g) => linReg(ts, exp.rows.map((r) => r[g.bx])));
-  const regW = GROUPS.map((g) => linReg(ts, exp.rows.map((r) => r[g.w])));
+  const potW = exp.potW ?? ["", "", ""];
+  const setPotW = (i, v) => {
+    const next = [potW[0] ?? "", potW[1] ?? "", potW[2] ?? ""];
+    next[i] = v;
+    update(["exp4", "potW"], next);
+  };
+  const coTui = potW.some((x) => toNum(x) > 0);
+
+  // Số dẫn xuất (hồi quy, đồ thị, nhận xét) luôn tính trên khối lượng dịch thuần
+  const rows = useMemo(() => netRows(exp), [exp]);
+  const ts = rows.map((r) => r.t);
+  const regBx = GROUPS.map((g) => linReg(ts, rows.map((r) => r[g.bx])));
+  const regW = GROUPS.map((g) => linReg(ts, rows.map((r) => r[g.w])));
 
   const auto43 = useMemo(() => sinhNhanXet43(exp), [exp]);
   const auto45 = useMemo(() => sinhNhanXet45(exp), [exp]);
@@ -214,6 +236,30 @@ export default function Exp4({ mode }) {
         title="4.1 — °Bx và khối lượng syrup trong quá trình cô đặc"
         hint="Nước mía sau làm trong ~15–17 °Bx, cô tới 60–65 °Bx. Khối lượng đầu chính là dòng phút 0 (chưa cô đặc) — nhập trực tiếp vào cột Khối lượng ở dòng đầu, không cần ô riêng. Thêm/bớt dòng thời gian tùy buổi làm."
       >
+        <div className="cane-multi">
+          <span className="inline-field">Khối lượng nồi rỗng (g) — nhóm nào cân thì nhập nhóm đó:</span>
+          <div className="m-grid3">
+            {GROUPS.map((g, i) => (
+              <label key={g.label}>
+                {g.label}
+                <input
+                  className="num-input"
+                  inputMode="decimal"
+                  type="number"
+                  step="any"
+                  value={potW[i] ?? ""}
+                  onChange={(e) => setPotW(i, e.target.value)}
+                  placeholder="VD: 150"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+        <p className="hint">
+          {coTui
+            ? "Đang trừ bì: cột Khối lượng (g) của nhóm đã nhập nồi rỗng được hiểu là cân cả nồi, mọi tính toán (hồi quy, đồ thị, nhận xét) dùng khối lượng dịch = nồi+dịch − nồi. Nhóm để trống vẫn dùng số nhập trực tiếp."
+            : "Theo hướng dẫn, cân cả nồi rồi nhắc nhanh lên cân để khỏi nguội dịch — nhập khối lượng nồi rỗng ở trên, app tự trừ bì (m dịch = m nồi+dịch − m nồi). Để trống nếu bạn đã cân sẵn khối lượng dịch thuần."}
+        </p>
         {!mobile ? (
           <div className="table-wrap">
             <table className="dt">
@@ -290,7 +336,7 @@ export default function Exp4({ mode }) {
       </SectionCard>
 
       <SectionCard title="4.4 — Đồ thị thời gian – °Bx">
-        <Exp4Chart rows={exp.rows} mode="bx" height={mobile ? 260 : 320} />
+        <Exp4Chart rows={rows} mode="bx" height={mobile ? 260 : 320} />
       </SectionCard>
 
       <SectionCard
@@ -307,7 +353,7 @@ export default function Exp4({ mode }) {
       </SectionCard>
 
       <SectionCard title="4.6 — Đồ thị thời gian – weight">
-        <Exp4Chart rows={exp.rows} mode="weight" height={mobile ? 260 : 320} />
+        <Exp4Chart rows={rows} mode="weight" height={mobile ? 260 : 320} />
       </SectionCard>
 
       <SectionCard
