@@ -24,7 +24,7 @@ Trang hướng dẫn thực hành 6 bài có thể xem không cần đăng nhậ
 - Auth email + Google; chưa đăng nhập vẫn nhập được (lưu máy, đăng nhập sẽ đồng bộ cloud).
 - **6 chương riêng** (`/exp1`…`/exp6`), chép đầy đủ mô tả gốc từ phiếu để làm bài không cần mở PDF.
 - **Hướng dẫn thực hành công khai** (`/guide`): trình tự thao tác, thông số và công thức của 6 bài; không yêu cầu đăng nhập.
-- Exp 1: bảng 9 nồng độ (đường tự tính; nước nhập tay, mặc định 100 − đường), hồi quy tuyến tính + R² tự tính, chart nồng độ–°Bx.
+- Exp 1: bảng nồng độ động (sửa / thêm / xóa dòng, mặc định 9 nồng độ; đường tự tính; nước mặc định 100 − đường và tự cập nhật khi chưa sửa tay, nhập lại được theo lượng cân thực tế), hồi quy tuyến tính + R² tự tính, chart nồng độ–°Bx.
 - Exp 2: 2 bảng repeat (mean/SD tự tính), ô khối lượng mía, 2 mục so sánh với bảng 1.1.
 - Exp 3: bảng Control/5%/10%/15% vôi, nhận xét dùng số liệu nhóm khác.
 - Exp 4: bảng thời gian động (thêm/xóa dòng), hồi quy time–°Bx và time–weight, **2 biểu đồ**.

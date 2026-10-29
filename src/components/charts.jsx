@@ -9,6 +9,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { toNum } from "../lib/stats";
+
 const COLORS = ["#16a34a", "#2563eb", "#dc2626"];
 
 function ChartBox({ title, sub, data, xKey, lines, yLabel, height }) {
@@ -37,14 +39,17 @@ function ChartBox({ title, sub, data, xKey, lines, yLabel, height }) {
 export function Exp1Chart({ rows, height }) {
   const data = rows
     .map((r) => {
-      const o = { conc: Number(r.conc) };
+      const o = { conc: toNum(r.conc) };
+      if (Number.isNaN(o.conc)) return null;
       ["g1", "g2", "g3"].forEach((k) => {
-        const v = Number(String(r[k]).replace(",", "."));
-        if (Number.isFinite(v) && r[k] !== "") o[k] = v;
+        const v = toNum(r[k]);
+        if (!Number.isNaN(v)) o[k] = v;
       });
       return o;
     })
-    .filter((o) => o.g1 !== undefined || o.g2 !== undefined || o.g3 !== undefined);
+    .filter(Boolean)
+    .filter((o) => ["g1", "g2", "g3"].some((k) => o[k] !== undefined))
+    .sort((a, b) => a.conc - b.conc);
   return (
     <ChartBox
       title="1.4 — Tương quan nồng độ (%) và °Bx"

@@ -1,6 +1,6 @@
 import { useReport } from "../store/ReportContext";
 import { EXPERIMENTS } from "../lib/experimentsMeta";
-import { eqText, fmt, linReg } from "../lib/stats";
+import { eqText, fmt, linReg, toNum } from "../lib/stats";
 import { AutoTag, BigText, DescBlock, NumInput, RegLine, SectionCard } from "../components/ui";
 import { Exp1Chart } from "../components/charts";
 
@@ -16,7 +16,26 @@ export default function Exp1({ mode }) {
     linReg(concs, exp.table.map((r) => r[k]))
   );
 
+  const setRows = (rows) => update(["exp1", "table"], rows);
   const setCell = (idx, key, v) => update(["exp1", "table", idx, key], v);
+
+  // Nước chỉ tự đổi khi chưa bị sửa tay (vẫn đang = 100 − nồng độ cũ).
+  const setConc = (idx, v) => {
+    const row = exp.table[idx];
+    const c = toNum(v);
+    const w = toNum(row.water);
+    const auto = row.water === "" || Number.isNaN(w) || w === 100 - toNum(row.conc);
+    setCell(idx, "conc", v);
+    if (auto && !Number.isNaN(c)) setCell(idx, "water", String(100 - c));
+  };
+
+  const addRow = () => setRows([...exp.table, { conc: "", water: "", g1: "", g2: "", g3: "" }]);
+  const delRow = (i) => {
+    if (exp.table.length <= 1) return;
+    setRows(exp.table.filter((_, j) => j !== i));
+  };
+
+  const waterOf = (r) => r.water ?? (Number.isNaN(toNum(r.conc)) ? "" : String(100 - toNum(r.conc)));
 
   return (
     <div className="exp">
@@ -25,48 +44,59 @@ export default function Exp1({ mode }) {
 
       <SectionCard
         title="1.1 — Lượng đường / nước và nồng độ dung dịch (°Bx) (100 g dung dịch)"
-        hint="Đường lý thuyết = nồng độ % (g/100 g). Nước mặc định = 100 − đường, sửa được theo lượng cân thực tế. Cột Group 1/2/3: nhập °Bx đo thực tế bằng khúc xạ kế."
+        hint="Đường lý thuyết = nồng độ % (g/100 g). Nước mặc định = 100 − đường, sửa được theo lượng cân thực tế. Cột Group 1/2/3: nhập °Bx đo thực tế bằng khúc xạ kế. Nồng độ có thể sửa, thêm hoặc xóa tùy mẻ đường chuẩn của nhóm."
       >
         {!mobile ? (
-          <div className="table-wrap">
-            <table className="dt">
-              <thead>
-                <tr>
-                  <th>Nồng độ (%)</th>
-                  <th>Đường (g) <AutoTag>auto</AutoTag></th>
-                  <th>Nước (g)</th>
-                  <th>Group 1: °Bx đo</th>
-                  <th>Group 2: °Bx đo</th>
-                  <th>Group 3: °Bx đo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {exp.table.map((r, i) => (
-                  <tr key={r.conc}>
-                    <td><b>{r.conc}</b></td>
-                    <td className="auto">{fmt(r.conc, 1)}</td>
-                    <td><NumInput value={r.water ?? String(100 - r.conc)} ariaLabel={`water conc ${r.conc}`} onChange={(v) => setCell(i, "water", v)} /></td>
-                    {(["g1", "g2", "g3"]).map((k) => (
-                      <td key={k}>
-                        <NumInput value={r[k]} ariaLabel={`${k} conc ${r.conc}`} onChange={(v) => setCell(i, k, v)} />
-                      </td>
-                    ))}
+          <>
+            <div className="table-wrap">
+              <table className="dt">
+                <thead>
+                  <tr>
+                    <th>Nồng độ (%)</th>
+                    <th>Đường (g) <AutoTag>auto</AutoTag></th>
+                    <th>Nước (g)</th>
+                    <th>Group 1: °Bx đo</th>
+                    <th>Group 2: °Bx đo</th>
+                    <th>Group 3: °Bx đo</th>
+                    <th></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {exp.table.map((r, i) => (
+                    <tr key={i}>
+                      <td><NumInput value={r.conc} ariaLabel={`nồng độ dòng ${i + 1}`} onChange={(v) => setConc(i, v)} /></td>
+                      <td className="auto">{fmt(toNum(r.conc), 1)}</td>
+                      <td><NumInput value={waterOf(r)} ariaLabel={`nước dòng ${i + 1}`} onChange={(v) => setCell(i, "water", v)} /></td>
+                      {(["g1", "g2", "g3"]).map((k) => (
+                        <td key={k}>
+                          <NumInput value={r[k]} ariaLabel={`${k} dòng ${i + 1}`} onChange={(v) => setCell(i, k, v)} />
+                        </td>
+                      ))}
+                      <td><button className="btn danger sm" onClick={() => delRow(i)} aria-label={`xóa nồng độ dòng ${i + 1}`}>×</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button className="btn secondary" onClick={addRow}>+ Thêm nồng độ</button>
+          </>
         ) : (
           <div className="m-cards">
             {exp.table.map((r, i) => (
-              <div className="m-card" key={r.conc}>
+              <div className="m-card" key={i}>
                 <div className="m-card-head">
-                  <b>{r.conc}%</b>
-                  <span className="hint">đường {fmt(r.conc, 1)} g</span>
+                  <label className="m-row2">Nồng độ (%)
+                    <NumInput value={r.conc} ariaLabel={`nồng độ dòng ${i + 1}`} onChange={(v) => setConc(i, v)} />
+                  </label>
+                  <button className="btn danger sm" onClick={() => delRow(i)}>Xóa</button>
+                </div>
+                <div className="inline-field">
+                  <span>Đường (g):</span>
+                  <b>{fmt(toNum(r.conc), 1)}</b>
                 </div>
                 <div className="inline-field">
                   <span>Nước (g):</span>
-                  <NumInput value={r.water ?? String(100 - r.conc)} ariaLabel={`water conc ${r.conc}`} onChange={(v) => setCell(i, "water", v)} />
+                  <NumInput value={waterOf(r)} ariaLabel={`nước dòng ${i + 1}`} onChange={(v) => setCell(i, "water", v)} />
                 </div>
                 <div className="m-grid3">
                   {[["g1", "Gr 1 °Bx"], ["g2", "Gr 2 °Bx"], ["g3", "Gr 3 °Bx"]].map(([k, label]) => (
@@ -77,6 +107,7 @@ export default function Exp1({ mode }) {
                 </div>
               </div>
             ))}
+            <button className="btn secondary" onClick={addRow}>+ Thêm nồng độ</button>
           </div>
         )}
         <div className="regs">
