@@ -1,0 +1,25 @@
+slug: sugar-cane
+name: Sổ thực hành đường mía
+tagline: Nhập số liệu thực hành đường mía và xem biểu đồ
+url: https://sugar.yangio.id.vn/
+status: live
+visibility: public
+description: Web ghi số liệu 6 bài thực hành công nghệ đường mía, tự vẽ biểu đồ và lưu báo cáo bằng Firebase; dùng được không cần đăng nhập.
+tags:
+  - thực-hành
+  - đường-mía
+  - học-tập
+category: learning
+tech:
+  - react
+  - vite
+  - firebase
+  - recharts
+hosting: github-pages
+updated: '2026-10-29'
+version: 0.0.0
+icon: 🍬
+auth: login
+links:
+  repo: https://github.com/thangvt-food/sugar-cane
+notes: Deploy GitHub Pages và domain sugar.yangio.id.vn; cấu hình Firebase project ant05-efa02.
