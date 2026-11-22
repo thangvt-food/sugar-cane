@@ -28,3 +28,15 @@ dist-ssr
 /.tmp-test-xlsx.mjs
 /bao-cao-thuc-hanh-duong-mia.xlsx
 /so-thuc-hanh-duong-mia(3).json
+
+# Course material kept out of this public repo: heavy binaries, student submissions,
+# personal e-mail in the Google Form exports, and the quiz answer keys.
+/lesson/
+/report/
+/data/*
+!/data/hqt/
+/data/hqt/*
+!/data/hqt/README.md
+
+# Local CLI settings
+/.qoder/settings.local.json
